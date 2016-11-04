@@ -8,8 +8,7 @@ define(function(require) {
     var readline = require('readline'),
         io = require('socket.io-client');
     function App() {
-        this.ip = "192.168.211.108";
-        //this.ip = "192.168.211.7";
+        this.ip = "127.0.0.1";
         this.port = 8000;
         var modulePath = __dirname + '/modules/';
         this.socket = io.connect('ws://'+this.ip+':'+this.port);

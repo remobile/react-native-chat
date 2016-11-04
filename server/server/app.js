@@ -3,7 +3,7 @@
     global._ = require('underscore');
     var express = require('express')();
     var mongourl;
-    var port = process.env.VCAP_APP_PORT||8000;
+    var port = process.env.VCAP_APP_PORT||8888;
     if (process.env.VCAP_SERVICES) {
         var env = JSON.parse(process.env.VCAP_SERVICES);
         mongourl = env['mongodb2-2.4.8'][0]['credentials'].url;
