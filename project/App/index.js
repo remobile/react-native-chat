@@ -33,11 +33,7 @@ var Utils = require('./utils/common/index.js');
 var Route = require('./config/Route.js');
 var img = require('./resource/image.js');
 var aud = require('./resource/audio.js');
-var PersonalInfoMgr = require('./manager/PersonalInfoMgr.js');
-var NetMgr = require('./manager/NetMgr.js');
-var SettingMgr = require('./manager/SettingMgr.js');
-var LoginMgr = require('./manager/LoginMgr.js');
-var MediaFileMgr = require('./manager/MediaFileMgr.js');
+var mgr = require('./manager/index.js');
 
 global.app = {
     route: Route,
@@ -45,11 +41,7 @@ global.app = {
     img: img,
     aud: aud,
     data: {},
-    personal: PersonalInfoMgr,
-    net: NetMgr,
-    setting: SettingMgr,
-    login: LoginMgr,
-    mediaFileMgr: MediaFileMgr,
+    mgr: mgr,
     isandroid: Platform.OS==="android",
 };
 
@@ -175,7 +167,7 @@ module.exports = React.createClass({
                 "accessibilityExtraExtraExtraLarge": 1
             });
         }
-        app.mediaFileMgr.checkRootDir();
+        app.mgr.media.checkRootDir();
         app.root = this;
         app.showProgressHud = this.showProgressHud;
         app.dismissProgressHud = this.dismissProgressHud;
