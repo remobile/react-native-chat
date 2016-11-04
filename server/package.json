@@ -1,15 +1,17 @@
 {
-	"name": "MRPChat",
-	"version": "1.0.0",
-	"description": "CLI chat with readline and socket.io",
-	"author": "Matt Harzewski",
-	"dependencies": {
-		"socket.io": "latest",
-		"socket.io-client": "latest",
-		"colors": "latest",
-		"express": "latest",
-		"underscore": "latest",
-		"body-parser": "latest"
-	},
-	"private": true
+  "name": "MRPChat",
+  "version": "1.0.0",
+  "description": "CLI chat with readline and socket.io",
+  "author": "Matt Harzewski",
+  "dependencies": {
+    "body-parser": "latest",
+    "colors": "latest",
+    "express": "latest",
+    "mongoose": "^4.6.6",
+    "mongoose-auto-increment": "^5.0.1",
+    "socket.io": "latest",
+    "socket.io-client": "latest",
+    "underscore": "latest"
+  },
+  "private": true
 }
