@@ -107,7 +107,7 @@ module.exports = (function() {
         if (obj) {
             console.log(obj);
         } else {
-            console.error("there is no group");
+            console.log("there is no group");
         }
     };
     GroupMgr.prototype.createGroup = function(name, members, type) {
@@ -117,9 +117,9 @@ module.exports = (function() {
     GroupMgr.prototype.onCreateGroup = function(obj) {
         console.log(obj);
         if (obj.error) {
-            console.error("create "+obj.name+" failed: for "+obj.error);
+            console.log("create "+obj.name+" failed: for "+obj.error);
         } else {
-            this.add({id:obj.id, name:obj.name, creator:app.mgr.login.userid, type:obj.type, members:obj.members});
+            this.add({id:obj.id, name:obj.name, creator:app.loginMgr.userid, type:obj.type, members:obj.members});
             console.log("create "+obj.name+" success");
         }
         this.emitEvent({type:"ON_CREATE_GROUP", error: obj.error});
@@ -130,7 +130,7 @@ module.exports = (function() {
     };
     GroupMgr.prototype.onModifyGroup = function(obj) {
         if (obj.error) {
-            console.error("modify "+obj.id+" failed: for "+obj.error);
+            console.log("modify "+obj.id+" failed: for "+obj.error);
         } else {
             this.list[obj.id].members = obj.members;
             this.list[obj.id].type = obj.type;
@@ -144,7 +144,7 @@ module.exports = (function() {
     };
     GroupMgr.prototype.onRemoveGroup = function(obj) {
         if (obj.error) {
-            console.error("remove "+obj.id+" failed: for "+obj.error);
+            console.log("remove "+obj.id+" failed: for "+obj.error);
         } else {
             this.remove(obj);
             console.log("remove "+obj.id+" success");
@@ -161,7 +161,7 @@ module.exports = (function() {
     };
     GroupMgr.prototype.onJoinGroup = function(obj) {
         if (obj.error) {
-            console.error("join "+obj.id+" failed: for "+obj.error);
+            console.log("join "+obj.id+" failed: for "+obj.error);
         } else {
             this.add({id:obj.id, name:obj.name, creator:obj.creator, type:obj.type, members:obj.members});
             console.log("join "+obj.id+" success");
@@ -191,14 +191,14 @@ module.exports = (function() {
     };
     GroupMgr.prototype.onPullInGroup = function(obj) {
         if (obj.error) {
-            console.error("pull "+obj.id+" failed: for "+obj.error);
+            console.log("pull "+obj.id+" failed: for "+obj.error);
         } else {
             this.updateGroup({id:obj.id, members:obj.members});
             console.log("pull "+obj.id+" success");
         }
     };
     GroupMgr.prototype.onPullInGroupNotify = function(obj) {
-        if (_.contains(obj.pulledmembers, app.mgr.login.userid)) {
+        if (_.contains(obj.pulledmembers, app.loginMgr.userid)) {
             this.add({id:obj.id, name:obj.name, creator:obj.creator, type:obj.type, members:obj.members});
             console.log('you have been pull',  obj.id);
             this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});
@@ -217,14 +217,14 @@ module.exports = (function() {
     };
     GroupMgr.prototype.onFireOutGroup = function(obj) {
         if (obj.error) {
-            console.error("fireOut "+obj.id+" failed: for "+obj.error);
+            console.log("fireOut "+obj.id+" failed: for "+obj.error);
         } else {
             this.updateGroup({id:obj.id, members:obj.members});
             console.log("fireOut "+obj.id+" success");
         }
     };
     GroupMgr.prototype.onFireOutGroupNotify = function(obj) {
-        if (_.contains(obj.firedmembers, app.mgr.login.userid)) {
+        if (_.contains(obj.firedmembers, app.loginMgr.userid)) {
             this.remove(obj);
             console.log('you have been fire',  obj.id);
             this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});

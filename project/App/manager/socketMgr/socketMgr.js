@@ -4,11 +4,14 @@ var {
     AsyncStorage,
 } = ReactNative;
 
+var io = require('socket.io-client/socket.io');
+
 class Manager {
-    start(url) {
-        const {login} = app.mgr;
-        app.socket = io.connect(url, {
-            connect_timeout: 3000
+    register() {
+        const {loginMgr} = app;
+        app.socket = io.connect('ws://127.0.0.1:8888', {
+            connect_timeout: 3000,
+            transports: ['websocket'],
         });
         app.socket.on('connect', function(obj) {
             console.log("connect to server");
@@ -16,31 +19,31 @@ class Manager {
         }).on('disconnect', function(obj) {
             console.log("disconnect to server");
             app.chatconnect = false;
-            login.online = false;
+            loginMgr.online = false;
             // app.userMgr.reset();
             // app.groupMgr.reset();
             Toast('服务器断开了连接');
         }).on('connect_error', function(obj) {
-            console.error("connect to server error");
+            console.log("connect to server error");
         }).on('connect_timeout', function(obj) {
-            console.error("connect to server timeout");
+            console.log("connect to server timeout");
         }).on('reconnect', function(obj) {
             console.log(" reconnect to server");
             app.chatconnect = true;
-            login.login();
+            loginMgr.login();
             Toast('服务器重新连接连接成功');
         }).on('reconnect_error', function(obj) {
-            console.error("reconnect to server error");
+            console.log("reconnect to server error");
         }).on('reconnect_failed', function(obj) {
-            console.error("reconnect to server failed");
+            console.log("reconnect to server failed");
         }).on('USER_REGISTER_RS', function(obj) {
-            login.onRegister(obj);
+            loginMgr.onRegister(obj);
         }).on('USER_REGISTER_NF', function(obj) {
-            login.onRegisterNotify(obj);
+            loginMgr.onRegisterNotify(obj);
         }).on('USER_LOGIN_RS', function(obj) {
-            login.onLogin(obj);
+            loginMgr.onLogin(obj);
         })
-    },
+    }
     send() {
 
     }
@@ -59,33 +62,33 @@ module.exports = new Manager();
 //         app.socket = io.connect(url, {
 //             connect_timeout: 3000
 //         });
-        // app.socket.on('connect', function(obj) {
-        //     console.log("connect to server");
-        //     router.ON_CONNECT();
-        // }).on('disconnect', function(obj) {
-        //     console.log("disconnect to server");
-        //     router.ON_DISCONNECT();
-        // }).on('connect_error', function(obj) {
-        //     console.error("connect to server error");
-        //     //app.showError(app.error.CANNOT_CONNECT_CHAT_SERVER);
-        // }).on('connect_timeout', function(obj) {
-        //     console.error("connect to server timeout");
-        // }).on('reconnect', function(obj) {
-        //     console.log(" reconnect to server");
-        //     router.ON_RECONNECT();
-        // }).on('reconnect_error', function(obj) {
-        //     console.error("reconnect to server error");
-        //     //app.showError(app.error.CANNOT_CONNECT_CHAT_SERVER);
-        // }).on('reconnect_failed', function(obj) {
-        //     console.error("reconnect to server failed");
-        //     //app.showError(app.error.CANNOT_CONNECT_CHAT_SERVER);
-        // }).on('USER_REGISTER_RS', function(obj) {
-        //     app.router.ON_USER_REGISTER_RS(obj);
-        // }).on('USER_REGISTER_NF', function(obj) {
-        //     app.router.ON_USER_REGISTER_NF(obj);
-        // }).on('USER_LOGIN_RS', function(obj) {
-        //     router.ON_USER_LOGIN_RS(obj);
-        // }).on('USER_LOGOUT_NF', function(obj) {
+// app.socket.on('connect', function(obj) {
+//     console.log("connect to server");
+//     router.ON_CONNECT();
+// }).on('disconnect', function(obj) {
+//     console.log("disconnect to server");
+//     router.ON_DISCONNECT();
+// }).on('connect_error', function(obj) {
+//     console.log("connect to server error");
+//     //app.showError(app.error.CANNOT_CONNECT_CHAT_SERVER);
+// }).on('connect_timeout', function(obj) {
+//     console.log("connect to server timeout");
+// }).on('reconnect', function(obj) {
+//     console.log(" reconnect to server");
+//     router.ON_RECONNECT();
+// }).on('reconnect_error', function(obj) {
+//     console.log("reconnect to server error");
+//     //app.showError(app.error.CANNOT_CONNECT_CHAT_SERVER);
+// }).on('reconnect_failed', function(obj) {
+//     console.log("reconnect to server failed");
+//     //app.showError(app.error.CANNOT_CONNECT_CHAT_SERVER);
+// }).on('USER_REGISTER_RS', function(obj) {
+//     app.router.ON_USER_REGISTER_RS(obj);
+// }).on('USER_REGISTER_NF', function(obj) {
+//     app.router.ON_USER_REGISTER_NF(obj);
+// }).on('USER_LOGIN_RS', function(obj) {
+//     router.ON_USER_LOGIN_RS(obj);
+// }).on('USER_LOGOUT_NF', function(obj) {
 //             router.ON_USER_LOGOUT_NF(obj);
 //         }).on('USER_LOGIN_NF', function(obj) {
 //             router.ON_USER_LOGIN_NF(obj);

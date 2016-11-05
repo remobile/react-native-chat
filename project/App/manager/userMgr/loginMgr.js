@@ -42,7 +42,7 @@ class Manager extends EventEmitter {
     clear() {
         this.list = [];
         AsyncStorage.removeItem(ITEM_NAME);
-    },
+    }
     login(userid, password, autoLogin, remeberPassword) {
         if (!app.chatconnect) {
             Toast('服务器未连接');

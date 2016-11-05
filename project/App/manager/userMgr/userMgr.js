@@ -67,7 +67,7 @@ module.exports = (function() {
         this.init = true;
     };
     UserMgr.prototype.addGroupedUser = function(userid) {
-        if (app.mgr.login.userid === userid) {
+        if (app.loginMgr.userid === userid) {
             return;
         }
         var user = this.users[userid];
@@ -121,5 +121,3 @@ module.exports = (function() {
 
     return new UserMgr();
 })();
-
-

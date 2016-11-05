@@ -33,7 +33,7 @@ var Utils = require('./utils/common/index.js');
 var Route = require('./config/Route.js');
 var img = require('./resource/image.js');
 var aud = require('./resource/audio.js');
-var mgr = require('./manager/index.js');
+var manager = require('./manager/index.js');
 
 global.app = {
     route: Route,
@@ -41,8 +41,8 @@ global.app = {
     img: img,
     aud: aud,
     data: {},
-    mgr: mgr,
     isandroid: Platform.OS==="android",
+    ...manager
 };
 
 app.configureScene = function(route) {
@@ -167,7 +167,8 @@ module.exports = React.createClass({
                 "accessibilityExtraExtraExtraLarge": 1
             });
         }
-        app.mgr.media.checkRootDir();
+        // app.mgr.media.checkRootDir();
+        app.socketMgr.register();
         app.root = this;
         app.showWait = this.showProgressHud;
         app.hideWait = this.dismissProgressHud;

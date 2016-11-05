@@ -9,7 +9,7 @@ define(function(require) {
         io = require('socket.io-client');
     function App() {
         this.ip = "127.0.0.1";
-        this.port = 8000;
+        this.port = 8888;
         var modulePath = __dirname + '/modules/';
         this.socket = io.connect('ws://'+this.ip+':'+this.port);
         this.rl = readline.createInterface(process.stdin, process.stdout);

@@ -65,24 +65,25 @@ var NoWeixinQQPanel = React.createClass({
 
 module.exports = React.createClass({
     doLogin() {;
-        if (!app.utils.checkPhone(this.state.phone)) {
-            Toast('手机号码不是有效的手机号码');
-            return;
-        }
-        if (!app.utils.checkPassword(this.state.password)) {
-            Toast('密码必须有6-20位的数字，字母，下划线组成');
-            return;
-        }
-        var param = {
-            phone:this.state.phone,
-            password:this.state.password,
-        };
-        app.showWait();
-        POST(app.route.ROUTE_LOGIN, param, this.doLoginSuccess, this.doLoginError);
+        app.loginMgr.login('18085192480', '123');
+        // if (!app.utils.checkPhone(this.state.phone)) {
+        //     Toast('手机号码不是有效的手机号码');
+        //     return;
+        // }
+        // if (!app.utils.checkPassword(this.state.password)) {
+        //     Toast('密码必须有6-20位的数字，字母，下划线组成');
+        //     return;
+        // }
+        // var param = {
+        //     phone:this.state.phone,
+        //     password:this.state.password,
+        // };
+        // app.showWait();
+        // POST(app.route.ROUTE_LOGIN, param, this.doLoginSuccess, this.doLoginError);
     },
     doLoginSuccess(data) {
         if (data.success) {
-            app.mgr.login.savePhone(this.state.phone);
+            app.loginMgr.savePhone(this.state.phone);
             this.doGetPersonalInfo();
         } else {
             Toast(data.msg);
@@ -91,12 +92,6 @@ module.exports = React.createClass({
     },
     doLoginError(error) {
         app.hideWait();
-    },
-    doAnonymousLogin() {
-        app.personal.info = {phone: ''};
-        app.navigator.replace({
-            component: Home,
-        });
     },
     doShowForgetPassword() {
         app.navigator.push({
@@ -129,12 +124,12 @@ module.exports = React.createClass({
         app.hideWait();
     },
     getInitialState() {
-        app.mgr.login.list = [];
+        app.loginMgr.list = [];
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         return {
-            phone: this.props.phone|| app.mgr.login.list[0]||"",
+            phone: this.props.phone|| app.loginMgr.list[0]||"",
             password: "",
-            dataSource: ds.cloneWithRows(app.mgr.login.list),
+            dataSource: ds.cloneWithRows(app.loginMgr.list),
             showList: false,
             weixininstalled: false,
             qqinstalled: false,
@@ -166,7 +161,7 @@ module.exports = React.createClass({
     },
     onPhoneTextChange(text) {
         var dataSource = this.state.dataSource;
-        var newData = _.filter(app.mgr.login.list, (item)=>{var reg=new RegExp('^'+text+'.*'); return reg.test(item)});
+        var newData = _.filter(app.loginMgr.list, (item)=>{var reg=new RegExp('^'+text+'.*'); return reg.test(item)});
         this.setState({
             phone: text,
             dataSource: dataSource.cloneWithRows(newData),
@@ -216,7 +211,6 @@ module.exports = React.createClass({
                 </View>
                 <View style={styles.btnLoginContainer}>
                     <Button onPress={this.doLogin} style={styles.btnLogin} textStyle={styles.btnLoginText}>账号登录</Button>
-                    <Button onPress={this.doAnonymousLogin} style={[styles.btnLogin, {backgroundColor:'#D1D1D1'}]} textStyle={styles.btnLoginText}>匿名登录</Button>
                 </View>
                 {this.state.qqinstalled || this.state.weixininstalled ? <WeixinQQPanel qqinstalled={this.state.qqinstalled} weixininstalled={this.state.weixininstalled}/>: <NoWeixinQQPanel />}
                 {
