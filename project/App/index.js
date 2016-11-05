@@ -67,7 +67,7 @@ app.configureScene = function(route) {
     return sceneConfig;
 };
 
-var Splash = require('./modules/test/emoji.js');
+var Splash = require('./modules/login/Login.js');
 
 var NavigationBarRouteMapper = {
     LeftButton(route, navigator, index, navState) {
@@ -169,8 +169,8 @@ module.exports = React.createClass({
         }
         app.mgr.media.checkRootDir();
         app.root = this;
-        app.showProgressHud = this.showProgressHud;
-        app.dismissProgressHud = this.dismissProgressHud;
+        app.showWait = this.showProgressHud;
+        app.hideWait = this.dismissProgressHud;
         app.showModal = (view, options={}) => {
             const { title, backgroundColor, touchHide} = options;
             this.setState({

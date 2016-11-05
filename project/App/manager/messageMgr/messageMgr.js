@@ -151,7 +151,7 @@ module.exports = (function() {
         us.object(constants.GROUP_MESSAGE_BADGES, obj);
 
         obj = this.unreadMessage.at;
-        if (touserid == app.loginMgr.userid) {
+        if (touserid == app.mgr.login.userid) {
             if (!obj[groupid]) {
                 obj[groupid] = 1;
             } else {
@@ -231,7 +231,7 @@ module.exports = (function() {
         this.increaseMsgId();
         app.emit('USER_SEND_MESSAGE_RQ', {type:this.GROUP_TYPE, to:groupid, msg:msg, msgtype:msgtype, msgid:this.msgid, touserid:touserid});
         var time = Date.now();
-        this.showNewestMessage(this.GROUP_TYPE, app.loginMgr.userid, groupid, time, msg, msgtype, this.msgid, touserid);
+        this.showNewestMessage(this.GROUP_TYPE, app.mgr.login.userid, groupid, time, msg, msgtype, this.msgid, touserid);
     };
     MessageMgr.prototype.onSendUserMessage = function(obj) {
         if (obj.error) {
@@ -302,7 +302,7 @@ module.exports = (function() {
         var type = obj.type;
         var msg = obj.msg;
         var _id = obj._id;
-        var selfid = app.loginMgr.userid;
+        var selfid = app.mgr.login.userid;
         var arr = _.map(msg, function(item) {
             var from = item.from;
             var to = item.to;

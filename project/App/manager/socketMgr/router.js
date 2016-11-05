@@ -9,32 +9,32 @@ module.exports = (function() {
     };
     Router.prototype.ON_RECONNECT = function(obj) {
         app.chatconnect = true;
-        app.loginMgr.login();
-        app.toast('服务器重新连接连接成功');
+        app.mgr.login.login();
+        ('服务器重新连接连接成功');
     };
     Router.prototype.ON_DISCONNECT = function(obj) {
         app.chatconnect = false;
-        app.loginMgr.online = false;
+        app.mgr.login.online = false;
         app.userMgr.reset();
         app.groupMgr.reset();
-        app.toast('服务器断开了连接');
+        ('服务器断开了连接');
     };
     Router.prototype.ON_USER_REGISTER_RS = function(obj) {
-        app.loginMgr.onRegister(obj);
+        app.mgr.login.onRegister(obj);
     };
     Router.prototype.ON_USER_REGISTER_NF = function(obj) {
-        app.loginMgr.onRegisterNotify(obj);
+        app.mgr.login.onRegisterNotify(obj);
     };
     Router.prototype.ON_USER_LOGIN_RS = function(obj) {
-        app.loginMgr.onLogin(obj);
+        app.mgr.login.onLogin(obj);
     };
     Router.prototype.ON_USER_LOGIN_NF = function(obj) {
-        if (app.loginMgr.online) {
+        if (app.mgr.login.online) {
             app.userMgr.online(obj);
         }
     };
     Router.prototype.ON_USER_LOGOUT_NF = function(obj) {
-        if (app.loginMgr.online) {
+        if (app.mgr.login.online) {
             app.userMgr.offline(obj);
         }
     };

@@ -12,7 +12,6 @@ var {
     ScrollView,
 } = ReactNative;
 
-var PersonalInfoMgr = require('../../manager/PersonalInfoMgr.js');
 var Subscribable = require('Subscribable');
 
 var {MessageBox, DImage}=  COMPONENTS;

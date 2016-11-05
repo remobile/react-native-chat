@@ -119,7 +119,7 @@ module.exports = (function() {
         if (obj.error) {
             console.error("create "+obj.name+" failed: for "+obj.error);
         } else {
-            this.add({id:obj.id, name:obj.name, creator:app.loginMgr.userid, type:obj.type, members:obj.members});
+            this.add({id:obj.id, name:obj.name, creator:app.mgr.login.userid, type:obj.type, members:obj.members});
             console.log("create "+obj.name+" success");
         }
         this.emitEvent({type:"ON_CREATE_GROUP", error: obj.error});
@@ -198,7 +198,7 @@ module.exports = (function() {
         }
     };
     GroupMgr.prototype.onPullInGroupNotify = function(obj) {
-        if (_.contains(obj.pulledmembers, app.loginMgr.userid)) {
+        if (_.contains(obj.pulledmembers, app.mgr.login.userid)) {
             this.add({id:obj.id, name:obj.name, creator:obj.creator, type:obj.type, members:obj.members});
             console.log('you have been pull',  obj.id);
             this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});
@@ -224,7 +224,7 @@ module.exports = (function() {
         }
     };
     GroupMgr.prototype.onFireOutGroupNotify = function(obj) {
-        if (_.contains(obj.firedmembers, app.loginMgr.userid)) {
+        if (_.contains(obj.firedmembers, app.mgr.login.userid)) {
             this.remove(obj);
             console.log('you have been fire',  obj.id);
             this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});

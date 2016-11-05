@@ -2,7 +2,7 @@
 
 function GET(url, success, error) {
     console.log("getSend:", url);
-    app.showProgressHud();
+    app.showWait();
     fetch(url,  {
         method: 'get',
         headers: {
@@ -12,11 +12,11 @@ function GET(url, success, error) {
     .then((response) => response.json())
     .then((json) => {
         console.log("getRecv:", json);
-        app.dismissProgressHud();
+        app.hideWait();
         success && success(json);
     })
     .catch((err) => {
-        app.dismissProgressHud();
+        app.hideWait();
         if (!error||!error(err)) {
             Toast("网络出错");
         }

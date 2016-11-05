@@ -77,20 +77,20 @@ module.exports = React.createClass({
             phone:this.state.phone,
             password:this.state.password,
         };
-        app.showProgressHud();
+        app.showWait();
         POST(app.route.ROUTE_LOGIN, param, this.doLoginSuccess, this.doLoginError);
     },
     doLoginSuccess(data) {
         if (data.success) {
-            app.login.savePhone(this.state.phone);
+            app.mgr.login.savePhone(this.state.phone);
             this.doGetPersonalInfo();
         } else {
             Toast(data.msg);
-            app.dismissProgressHud();
+            app.hideWait();
         }
     },
     doLoginError(error) {
-        app.dismissProgressHud();
+        app.hideWait();
     },
     doAnonymousLogin() {
         app.personal.info = {phone: ''};
@@ -121,19 +121,20 @@ module.exports = React.createClass({
                 component: Home,
             });
         } else {
-            app.dismissProgressHud();
+            app.hideWait();
             Toast(data.msg);
         }
     },
     getPersonalInfoError(error) {
-        app.dismissProgressHud();
+        app.hideWait();
     },
     getInitialState() {
+        app.mgr.login.list = [];
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         return {
-            phone: this.props.phone|| app.login.list[0]||"",
+            phone: this.props.phone|| app.mgr.login.list[0]||"",
             password: "",
-            dataSource: ds.cloneWithRows(app.login.list),
+            dataSource: ds.cloneWithRows(app.mgr.login.list),
             showList: false,
             weixininstalled: false,
             qqinstalled: false,
@@ -165,7 +166,7 @@ module.exports = React.createClass({
     },
     onPhoneTextChange(text) {
         var dataSource = this.state.dataSource;
-        var newData = _.filter(app.login.list, (item)=>{var reg=new RegExp('^'+text+'.*'); return reg.test(item)});
+        var newData = _.filter(app.mgr.login.list, (item)=>{var reg=new RegExp('^'+text+'.*'); return reg.test(item)});
         this.setState({
             phone: text,
             dataSource: dataSource.cloneWithRows(newData),

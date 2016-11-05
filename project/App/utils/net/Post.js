@@ -11,7 +11,7 @@ module.exports = (url, parameter, success, failed, wait)=>{
         failed = null;
     }
     if (wait) {
-        app.showProgressHud();
+        app.showWait();
     }
     Des.encrypt(JSON.stringify(parameter), KEY, (base64)=>{
         fetch(url,  {
@@ -34,19 +34,19 @@ module.exports = (url, parameter, success, failed, wait)=>{
                         Toast('JSON解析错误');
                         console.log(url+ ":JSON解析错误");
                         if (wait) {
-                            app.dismissProgressHud();
+                            app.hideWait();
                         }
         			}
                 }
                 console.log("recv:", json);
-                app.dismissProgressHud();
+                app.hideWait();
                 success(json);
             }, ()=>{
                 if (!failed || !failed()) {
                     Toast('数据解密错误');
                     console.log(url+ ":数据解密错误");
                     if (wait) {
-                        app.dismissProgressHud();
+                        app.hideWait();
                     }
                 }
             });
@@ -56,7 +56,7 @@ module.exports = (url, parameter, success, failed, wait)=>{
                 Toast('网络错误');
                 console.log(url+ ":网络错误", error);
                 if (wait) {
-                    app.dismissProgressHud();
+                    app.hideWait();
                 }
 			}
         });
@@ -64,7 +64,7 @@ module.exports = (url, parameter, success, failed, wait)=>{
         if (!failed || !failed()) {
             Toast('数据加密错误');
             if (wait) {
-                app.dismissProgressHud();
+                app.hideWait();
             }
         }
     });

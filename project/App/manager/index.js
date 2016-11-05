@@ -15,5 +15,6 @@ module.exports = {
 	// socket: require('./socketMgr/SocketMgr'),
 	// notify: require('./userMgr/NotifyMgr'),
 	// login: require('./userMgr/LoginMgr'),
+	login: {},
 	// user: require('./userMgr/UserMgr'),
 };

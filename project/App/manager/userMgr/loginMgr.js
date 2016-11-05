@@ -1,13 +1,51 @@
-var _  = require('underscore');
+'use strict';
+var ReactNative = require('react-native');
+var {
+    AsyncStorage,
+} = ReactNative;
+var EventEmitter = require('EventEmitter');
 
-module.exports = (function() {
-    "use strict";
-    function LoginMgr() {
+const ITEM_NAME = "LOGIN_HISTORY_LIST";
+
+class Manager extends EventEmitter {
+    constructor() {
+        super();
+        this.list = [];
+        this.get();
     }
-
-    LoginMgr.prototype.login = function(userid, password, autoLogin, remeberPassword) {
+    get() {
+        return new Promise(async(resolve, reject)=>{
+            var list = [];
+            try {
+                var infoStr = await AsyncStorage.getItem(ITEM_NAME);
+                list = JSON.parse(infoStr);
+            } catch(e) {
+            }
+            this.list = list||[];
+        });
+    }
+    set(list) {
+        return new Promise(async(resolve, reject)=>{
+            this.list = list;
+            await AsyncStorage.setItem(ITEM_NAME, JSON.stringify(list));
+            resolve();
+        });
+    }
+    savePhone(phone) {
+        var list = this.list;
+        if (_.includes(list, phone)) {
+            list = _.without(list, phone);
+        }
+        list.unshift(phone);
+        this.set(list);
+    }
+    clear() {
+        this.list = [];
+        AsyncStorage.removeItem(ITEM_NAME);
+    },
+    login(userid, password, autoLogin, remeberPassword) {
         if (!app.chatconnect) {
-            app.toast('chat server not connected');
+            Toast('服务器未连接');
             return;
         }
         var reconnect = !userid;
@@ -32,69 +70,61 @@ module.exports = (function() {
         this.reconnect = reconnect;
         app.showWait();
         app.socket.emit('USER_LOGIN_RQ', param);
-    };
-    LoginMgr.prototype.autoLogin = function(userid, password, autoLogin, remeberPassword) {
-        var self = this;
-        var time = 0;
-        async.until(
-            function(){return app.chatconnect||time>3000},
-            function(c) {time+=100;setTimeout(c, 100)},
-            function() {self.login(userid, password, autoLogin, remeberPassword)}
-        );
-    };
-    LoginMgr.prototype.onLogin = function(obj) {
+    }
+    autoLogin(userid, password, autoLogin, remeberPassword) {
+        this.login(userid, password, autoLogin, remeberPassword);
+    }
+    onLogin(obj) {
         console.log(obj);
-        app.hideWait();
-        if (obj.error) {
-            app.showChatError(obj.error);
-            return;
-        }
-        if (!this.reconnect) {
-            var us = app.us;
-            var constants = app.constants;
-            var userid = obj.userid;
-            us.string(constants.LOGIN_USER_ID, userid);
-            if (this.remeberPassword) {
-                us.string(constants.LOGIN_PASSWORD, obj.password);
-            } else {
-                us.string(constants.LOGIN_PASSWORD, '');
-            }
-            us.bool(constants.LOGIN_AUTO_LOGIN, this.autoLogin);
-            var option = {
-                indexes: [{name:"time", unique:false}]
-                ,capped: {name:"time", max:1000, direction:1, strict:true}
-            };
-            app.db_history_message = indexed('history_message_'+userid).create(option);
-            app.db_newest_message = indexed('newest_message_'+userid).create();
-            app.db_user_head = indexed('user_head_'+userid).create();
-            app.db_user_head.find(function (err, docs) {
-                _.each(docs, function (doc) {
-                    $.insertStyleSheet(app.userHeadCss, '.user_head_' + doc.userid, 'background-image:url(' + doc.head + ')');
-                });
-            });
-        }
-        app.socket.emit('USER_LOGIN_SUCCESS_NFS');
-        this.online = true;
-        app.messageMgr.getNewestMessage();
-        app.showView('home', 'fade', null, true);
-    };
-    LoginMgr.prototype.onRegister = function(obj) {
+        // app.hideWait();
+        // if (obj.error) {
+        //     app.showChatError(obj.error);
+        //     return;
+        // }
+        // if (!this.reconnect) {
+        //     var us = app.us;
+        //     var constants = app.constants;
+        //     var userid = obj.userid;
+        //     us.string(constants.LOGIN_USER_ID, userid);
+        //     if (this.remeberPassword) {
+        //         us.string(constants.LOGIN_PASSWORD, obj.password);
+        //     } else {
+        //         us.string(constants.LOGIN_PASSWORD, '');
+        //     }
+        //     us.bool(constants.LOGIN_AUTO_LOGIN, this.autoLogin);
+        //     var option = {
+        //         indexes: [{name:"time", unique:false}]
+        //         ,capped: {name:"time", max:1000, direction:1, strict:true}
+        //     };
+        //     app.db_history_message = indexed('history_message_'+userid).create(option);
+        //     app.db_newest_message = indexed('newest_message_'+userid).create();
+        //     app.db_user_head = indexed('user_head_'+userid).create();
+        //     app.db_user_head.find(function (err, docs) {
+        //         _.each(docs, function (doc) {
+        //             $.insertStyleSheet(app.userHeadCss, '.user_head_' + doc.userid, 'background-image:url(' + doc.head + ')');
+        //         });
+        //     });
+        // }
+        // app.socket.emit('USER_LOGIN_SUCCESS_NFS');
+        // this.online = true;
+        // app.messageMgr.getNewestMessage();
+        // app.showView('home', 'fade', null, true);
+    }
+    onRegister(obj) {
         console.log(obj);
         if (obj.error) {
             app.showChatError(obj.error);
             return;
         }
-        app.toast("Register Success");
+        ("Register Success");
         app.goBack();
-    };
-    LoginMgr.prototype.onRegisterNotify = function(obj) {
+    }
+    onRegisterNotify(obj) {
         console.log(obj);
         app.userMgr.add({userid:obj.userid, username: obj.username, sign:obj.sign});
         app.notifyMgr.updateUserHead({userid:obj.userid, head:obj.head});
         app.userMgr.emitChange();
-    };
+    }
+}
 
-    return new LoginMgr();
-})();
-
-
+module.exports = new Manager();
