@@ -2,7 +2,7 @@ module.exports = {
 	//common
 	// personal: require('./commonMgr/PersonalMgr.js'),
 	// net: require('./commonMgr/NetMgr.js'),
-	// setting: require('./commonMgr/SettingMgr.js'),
+	settingMgr: require('./commonMgr/SettingMgr.js'),
 	// media:require('./commonMgr/MediaMgr.js'),
 	//pay
 	// alipay: require('./payMgr/AlipayMgr.js'),

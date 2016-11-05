@@ -11,9 +11,9 @@ var {
     TouchableOpacity,
 } = ReactNative;
 
+import {Checkbox} from 'antd-mobile';
 var ForgetPassword = require('./ForgetPassword.js');
 var Home = require('../home/index.js');
-
 var {Button} = COMPONENTS;
 
 var WeixinQQPanel = React.createClass({
@@ -206,6 +206,10 @@ module.exports = React.createClass({
                         style={styles.text_input}
                         />
                 </View>
+                <View style={styles.checkboxContainer}>
+                    <View style={styles.checkbox}><Checkbox /><Text>记住密码</Text></View>
+                    <View style={styles.checkbox}><Checkbox /><Text>自动登录</Text></View>
+                </View>
                 <View style={styles.btnForgetPassWordContainer}>
                     <Button onPress={this.doShowForgetPassword} style={styles.btnForgetPassWord} textStyle={styles.btnForgetPassWordText}>忘记密码?</Button>
                 </View>
@@ -253,6 +257,18 @@ var styles = StyleSheet.create({
         fontSize:14,
         alignSelf: 'center',
         backgroundColor: '#FFFFFF',
+    },
+    checkboxContainer: {
+        paddingHorizontal: 50,
+        height: 80,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+    },
+    checkbox: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     btnForgetPassWordContainer: {
         height: 50,
@@ -325,14 +341,12 @@ var styles = StyleSheet.create({
         fontSize: 16,
     },
     thirdpartyContainer2: {
-        marginTop: 30,
-        height: 200,
+        flex: 1,
         alignItems:'center',
-        justifyContent: 'flex-end',
+        justifyContent: 'center',
     },
     thirdpartyContainer2_text: {
         fontSize: 18,
-        marginBottom:60,
     },
     list: {
         position: 'absolute',

@@ -44,9 +44,6 @@ class Manager {
             loginMgr.onLogin(obj);
         })
     }
-    send() {
-
-    }
 }
 
 module.exports = new Manager();
