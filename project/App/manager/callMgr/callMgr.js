@@ -138,7 +138,7 @@ module.exports = (function() {
     CallMgr.prototype.onCallOut = function(obj) {
         console.log('onCallOut', obj);
         if (obj.error) {
-            app.showChatError(obj.error);
+            app.(obj.error);
             this.state = this.STATE_ERROR;
             app.sound.playRing(app.resource.aud_call_error);
             var self = this;

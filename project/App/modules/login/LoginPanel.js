@@ -57,15 +57,31 @@ var NoWeixinQQPanel = React.createClass({
     render() {
         return (
             <View style={styles.thirdpartyContainer2}>
-                <Text style={[styles.thirdpartyContainer2_text, {color: app.THEME_COLOR}]}>人人监督         监督人人</Text>
+                <Text style={[styles.thirdpartyContainer2_text, {color: app.THEME_COLOR}]}>天天聊         聊天天</Text>
             </View>
         )
     }
 });
 
 module.exports = React.createClass({
+    getInitialState() {
+        const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+        const history = app.loginMgr.history[0]||{};
+        const {userid, password, autoLogin} = history;
+        return {
+            phone: this.props.phone||userid,
+            password: password,
+            remeberPassword: !!password,
+            autoLogin: autoLogin,
+            dataSource: ds.cloneWithRows(app.loginMgr.history.map((o)=>o.userid)),
+            showList: false,
+            weixininstalled: false,
+            qqinstalled: false,
+        };
+    },
     doLogin() {;
-        app.loginMgr.login('18085192480', '123');
+        console.log(this.state);
+        // app.loginMgr.login('18085192480', '123');
         // if (!app.utils.checkPhone(this.state.phone)) {
         //     Toast('手机号码不是有效的手机号码');
         //     return;
@@ -80,18 +96,6 @@ module.exports = React.createClass({
         // };
         // app.showWait();
         // POST(app.route.ROUTE_LOGIN, param, this.doLoginSuccess, this.doLoginError);
-    },
-    doLoginSuccess(data) {
-        if (data.success) {
-            app.loginMgr.savePhone(this.state.phone);
-            this.doGetPersonalInfo();
-        } else {
-            Toast(data.msg);
-            app.hideWait();
-        }
-    },
-    doLoginError(error) {
-        app.hideWait();
     },
     doShowForgetPassword() {
         app.navigator.push({
@@ -123,18 +127,6 @@ module.exports = React.createClass({
     getPersonalInfoError(error) {
         app.hideWait();
     },
-    getInitialState() {
-        app.loginMgr.list = [];
-        const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-        return {
-            phone: this.props.phone|| app.loginMgr.list[0]||"",
-            password: "",
-            dataSource: ds.cloneWithRows(app.loginMgr.list),
-            showList: false,
-            weixininstalled: false,
-            qqinstalled: false,
-        };
-    },
     onPhoneTextInputLayout(e) {
         var frame = e.nativeEvent.layout;
         this.listTop = frame.y+ frame.height;
@@ -154,13 +146,14 @@ module.exports = React.createClass({
         );
     },
     onFocus() {
-        this.setState({showList: this.state.dataSource.getRowCount()>0 && this.state.dataSource.getRowData(0, 0).length < 11});
+        const {dataSource} = this.state;
+        this.setState({showList: dataSource.getRowCount()>0 && dataSource.getRowData(0, 0).length < 11});
     },
     onBlur() {
         this.setState({showList: false});
     },
     onPhoneTextChange(text) {
-        var dataSource = this.state.dataSource;
+        const {dataSource} = this.state;
         var newData = _.filter(app.loginMgr.list, (item)=>{var reg=new RegExp('^'+text+'.*'); return reg.test(item)});
         this.setState({
             phone: text,
@@ -168,8 +161,16 @@ module.exports = React.createClass({
             showList: newData.length > 0 && text.length < 11,
         });
     },
+    onCheckBoxChange(type) {
+        if (type === 0) {
+            this.setState({remeberPassword: !this.state.remeberPassword});
+        } else {
+            this.setState({autoLogin: !this.state.autoLogin});
+        }
+    },
     render() {
-        var row = this.state.dataSource.getRowCount();
+        const {dataSource, showList, phone, password, remeberPassword, autoLogin, weixininstalled, qqinstalled} = this.state;
+        var row = dataSource.getRowCount();
         var listHeight = row>4?styles.listHeightMax:row<2?styles.listHeightMin:null;
         return (
             <View style={{flex:1}}>
@@ -185,7 +186,7 @@ module.exports = React.createClass({
                     <TextInput
                         placeholder="您的手机号码"
                         onChangeText={this.onPhoneTextChange}
-                        defaultValue={this.state.phone}
+                        defaultValue={phone}
                         style={styles.text_input}
                         keyboardType='phone-pad'
                         onFocus={this.onFocus}
@@ -202,13 +203,19 @@ module.exports = React.createClass({
                         placeholder="您的密码"
                         secureTextEntry={true}
                         onChangeText={(text) => this.setState({password: text})}
-                        defaultValue={this.state.password}
+                        defaultValue={password}
                         style={styles.text_input}
                         />
                 </View>
                 <View style={styles.checkboxContainer}>
-                    <View style={styles.checkbox}><Checkbox /><Text>记住密码</Text></View>
-                    <View style={styles.checkbox}><Checkbox /><Text>自动登录</Text></View>
+                    <View style={styles.checkbox}>
+                        <Checkbox defaultChecked={remeberPassword} onChange={this.onCheckBoxChange.bind(null, 0)}/>
+                        <Text>记住密码</Text>
+                    </View>
+                    <View style={styles.checkbox}>
+                        <Checkbox defaultChecked={autoLogin} onChange={this.onCheckBoxChange.bind(null, 1)}/>
+                        <Text>自动登录</Text>
+                    </View>
                 </View>
                 <View style={styles.btnForgetPassWordContainer}>
                     <Button onPress={this.doShowForgetPassword} style={styles.btnForgetPassWord} textStyle={styles.btnForgetPassWordText}>忘记密码?</Button>
@@ -216,12 +223,12 @@ module.exports = React.createClass({
                 <View style={styles.btnLoginContainer}>
                     <Button onPress={this.doLogin} style={styles.btnLogin} textStyle={styles.btnLoginText}>账号登录</Button>
                 </View>
-                {this.state.qqinstalled || this.state.weixininstalled ? <WeixinQQPanel qqinstalled={this.state.qqinstalled} weixininstalled={this.state.weixininstalled}/>: <NoWeixinQQPanel />}
+                {qqinstalled || weixininstalled ? <WeixinQQPanel qqinstalled={tqqinstalled} weixininstalled={weixininstalled}/>: <NoWeixinQQPanel />}
                 {
-                    this.state.showList &&
+                    showList &&
                     <ListView                        initialListSize={1}
                         enableEmptySections={true}
-                        dataSource={this.state.dataSource}
+                        dataSource={dataSource}
                         keyboardShouldPersistTaps={true}
                         renderRow={this.renderRow}
                         renderSeparator={this.renderSeparator}
@@ -285,14 +292,14 @@ var styles = StyleSheet.create({
         fontSize: 14,
     },
     btnLoginContainer: {
-        height: 60,
+        height: 100,
         justifyContent:'space-around',
+        alignItems: 'flex-end',
         flexDirection: 'row',
     },
     btnLogin: {
         height: 40,
         width: 130,
-        marginTop: 50,
     },
     btnLoginText: {
         fontSize: 20,

@@ -31,6 +31,7 @@ var ProgressHud = COMPONENTS.ProgressHud;
 var TimerMixin = require('react-timer-mixin');
 var Utils = require('./utils/common/index.js');
 var Route = require('./config/Route.js');
+var Error = require('./config/Error.js');
 var img = require('./resource/image.js');
 var aud = require('./resource/audio.js');
 var manager = require('./manager/index.js');
@@ -172,6 +173,9 @@ module.exports = React.createClass({
         app.root = this;
         app.showWait = this.showProgressHud;
         app.hideWait = this.dismissProgressHud;
+        app.showError = (type) => {
+            Toast(Error[type]);
+        };
         app.showModal = (view, options={}) => {
             const { title, backgroundColor, touchHide} = options;
             this.setState({

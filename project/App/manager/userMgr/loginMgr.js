@@ -10,37 +10,36 @@ const ITEM_NAME = "LOGIN_HISTORY_LIST";
 class Manager extends EventEmitter {
     constructor() {
         super();
-        this.list = [];
+        this.history = [];
         this.get();
     }
     get() {
         return new Promise(async(resolve, reject)=>{
-            var list = [];
+            var history = [];
             try {
                 var infoStr = await AsyncStorage.getItem(ITEM_NAME);
-                list = JSON.parse(infoStr);
+                history = JSON.parse(infoStr);
             } catch(e) {
             }
-            this.list = list||[];
+            this.history = history||[];
         });
     }
-    set(list) {
+    set(history) {
         return new Promise(async(resolve, reject)=>{
-            this.list = list;
-            await AsyncStorage.setItem(ITEM_NAME, JSON.stringify(list));
+            this.history = history;
+            await AsyncStorage.setItem(ITEM_NAME, JSON.stringify(history));
             resolve();
         });
     }
-    savePhone(phone) {
-        var list = this.list;
-        if (_.includes(list, phone)) {
-            list = _.without(list, phone);
-        }
-        list.unshift(phone);
-        this.set(list);
+    saveHistory(obj) {
+        const {userid, password} = obj;
+        var history = this.history;
+        history = _.reject(history, (o)=>o.userid===obj.userid);
+        history.unshift({userid, password:this.remeberPassword?password:'', autoLogin:this.autoLogin});
+        this.set(history);
     }
     clear() {
-        this.list = [];
+        this.history = [];
         AsyncStorage.removeItem(ITEM_NAME);
     }
     login(userid, password, autoLogin, remeberPassword) {
@@ -78,42 +77,21 @@ class Manager extends EventEmitter {
         console.log(obj);
         app.hideWait();
         if (obj.error) {
-            app.showChatError(obj.error);
+            app.showError(obj.error);
             return;
         }
         if (!this.reconnect) {
-            var us = app.us;
-            var constants = app.constants;
-            var userid = obj.userid;
-            us.string(constants.LOGIN_USER_ID, userid);
-            if (this.remeberPassword) {
-                us.string(constants.LOGIN_PASSWORD, obj.password);
-            } else {
-                us.string(constants.LOGIN_PASSWORD, '');
-            }
-            us.bool(constants.LOGIN_AUTO_LOGIN, this.autoLogin);
-            var option = {
-                indexes: [{name:"time", unique:false}]
-                ,capped: {name:"time", max:1000, direction:1, strict:true}
-            };
-            app.db_history_message = indexed('history_message_'+userid).create(option);
-            app.db_newest_message = indexed('newest_message_'+userid).create();
-            app.db_user_head = indexed('user_head_'+userid).create();
-            app.db_user_head.find(function (err, docs) {
-                _.each(docs, function (doc) {
-                    $.insertStyleSheet(app.userHeadCss, '.user_head_' + doc.userid, 'background-image:url(' + doc.head + ')');
-                });
-            });
+            this.saveInfo(obj);
         }
         app.socket.emit('USER_LOGIN_SUCCESS_NFS');
         this.online = true;
-        app.messageMgr.getNewestMessage();
-        app.showView('home', 'fade', null, true);
+        // app.messageMgr.getNewestMessage();
+        // app.showView('home', 'fade', null, true);
     }
     onRegister(obj) {
         console.log(obj);
         if (obj.error) {
-            app.showChatError(obj.error);
+            app.showError(obj.error);
             return;
         }
         ("Register Success");
