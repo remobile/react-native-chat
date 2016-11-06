@@ -11,7 +11,6 @@ var {
     View,
     TouchableOpacity,
 } = ReactNative;
-var SplashScreen = require('@remobile/react-native-splashscreen');
 
 module.exports = React.createClass({
     changeTab(tabIndex) {
@@ -24,7 +23,6 @@ module.exports = React.createClass({
         };
     },
     componentDidMount() {
-        SplashScreen.hide();
         app.toggleNavigationBar(true);
     },
     changeToLoginPanel(phone) {

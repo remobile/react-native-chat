@@ -79,23 +79,17 @@ module.exports = React.createClass({
             qqinstalled: false,
         };
     },
-    doLogin() {;
-        console.log(this.state);
-        // app.loginMgr.login('18085192480', '123');
-        // if (!app.utils.checkPhone(this.state.phone)) {
-        //     Toast('手机号码不是有效的手机号码');
-        //     return;
-        // }
-        // if (!app.utils.checkPassword(this.state.password)) {
-        //     Toast('密码必须有6-20位的数字，字母，下划线组成');
-        //     return;
-        // }
-        // var param = {
-        //     phone:this.state.phone,
-        //     password:this.state.password,
-        // };
-        // app.showWait();
-        // POST(app.route.ROUTE_LOGIN, param, this.doLoginSuccess, this.doLoginError);
+    doLogin() {
+        const {phone, password, remeberPassword, autoLogin} = this.state;
+        if (!app.utils.checkPhone(this.state.phone)) {
+            Toast('手机号码不是有效的手机号码');
+            return;
+        }
+        if (!app.utils.checkPassword(password)) {
+            Toast('密码必须有6-20位的数字，字母，下划线组成');
+            return;
+        }
+        app.loginMgr.login(phone, password, remeberPassword, autoLogin);
     },
     doShowForgetPassword() {
         app.navigator.push({
@@ -104,28 +98,6 @@ module.exports = React.createClass({
                 phone: this.state.phone,
             },
         });
-    },
-    doGetPersonalInfo() {
-        var param = {
-            phone: this.state.phone,
-        };
-        POST(app.route.ROUTE_GET_PERSONAL_INFO, param, this.getPersonalInfoSuccess, this.getPersonalInfoError);
-    },
-    getPersonalInfoSuccess(data) {
-        if (data.success) {
-            var context = data.context;
-            context['phone'] = this.state.phone;
-            app.personal.set(context);
-            app.navigator.replace({
-                component: Home,
-            });
-        } else {
-            app.hideWait();
-            Toast(data.msg);
-        }
-    },
-    getPersonalInfoError(error) {
-        app.hideWait();
     },
     onPhoneTextInputLayout(e) {
         var frame = e.nativeEvent.layout;

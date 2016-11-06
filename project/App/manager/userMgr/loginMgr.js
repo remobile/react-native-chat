@@ -22,6 +22,7 @@ class Manager extends EventEmitter {
             } catch(e) {
             }
             this.history = history||[];
+
         });
     }
     set(history) {
@@ -42,13 +43,15 @@ class Manager extends EventEmitter {
         this.history = [];
         AsyncStorage.removeItem(ITEM_NAME);
     }
-    login(userid, password, autoLogin, remeberPassword) {
+    login(params, callback) {
+        const {userid, password, autoLogin, remeberPassword} = params;
         if (!app.chatconnect) {
             Toast('服务器未连接');
+            callback && callback();
             return;
         }
-        var reconnect = !userid;
-        if (!reconnect) {
+        this.reconnect = !params;
+        if (!this.reconnect) {
             this.userid = userid;
             this.password = password;
             this.autoLogin = autoLogin;
@@ -64,14 +67,9 @@ class Manager extends EventEmitter {
         var param = {
             userid: userid,
             password: password,
-            reconnect: reconnect
         };
-        this.reconnect = reconnect;
         app.showWait();
         app.socket.emit('USER_LOGIN_RQ', param);
-    }
-    autoLogin(userid, password, autoLogin, remeberPassword) {
-        this.login(userid, password, autoLogin, remeberPassword);
     }
     onLogin(obj) {
         console.log(obj);
@@ -81,12 +79,14 @@ class Manager extends EventEmitter {
             return;
         }
         if (!this.reconnect) {
-            this.saveInfo(obj);
+            this.saveHistory(obj);
         }
         app.socket.emit('USER_LOGIN_SUCCESS_NFS');
         this.online = true;
         // app.messageMgr.getNewestMessage();
-        // app.showView('home', 'fade', null, true);
+        app.navigator.replace({
+            component: require('../modules/home/index.js'),
+        });
     }
     onRegister(obj) {
         console.log(obj);

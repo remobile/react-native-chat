@@ -112,26 +112,6 @@ module.exports = React.createClass({
             this.changeToNextPage();
         }
     },
-    doGetPersonalInfo() {
-        var param = {
-            phone: app.personal.info.phone,
-        };
-        POST(app.route.ROUTE_GET_PERSONAL_INFO, param, this.getPersonalInfoSuccess, this.getInfoError);
-    },
-    getPersonalInfoSuccess(data) {
-        if (data.success) {
-            var context = data.context;
-            context['phone'] = app.personal.info.phone;
-            app.personal.set(context);
-            this.changeToHomePage();
-        } else {
-            this.getInfoError();
-        }
-    },
-    getInfoError() {
-        app.personal.clear();
-        this.changeToLoginPage();
-    },
     changeToLoginPage() {
         app.navigator.replace({
             title: '登录'+CONSTANTS.APP_NAME,
@@ -146,8 +126,9 @@ module.exports = React.createClass({
         this.closeSplash();
     },
     changeToNextPage() {
-        if (app.personal.info) {
-            this.doGetPersonalInfo();
+        const history = app.loginMgr.history[0]||{};
+        if (history.autoLogin) {
+            app.loginMgr.login();
         } else {
             this.changeToLoginPage();
         }
