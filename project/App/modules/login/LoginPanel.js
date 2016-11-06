@@ -89,7 +89,7 @@ module.exports = React.createClass({
             Toast('密码必须有6-20位的数字，字母，下划线组成');
             return;
         }
-        app.loginMgr.login(phone, password, remeberPassword, autoLogin);
+        app.loginMgr.login({userid:phone, password, remeberPassword, autoLogin});
     },
     doShowForgetPassword() {
         app.navigator.push({
