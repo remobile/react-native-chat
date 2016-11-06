@@ -22,7 +22,11 @@ class Manager extends EventEmitter {
             } catch(e) {
             }
             this.history = history||[];
-
+            var {userid, password, autoLogin, remeberPassword} = _.last(this.history)||{};
+            this.userid = userid;
+            this.password = password;
+            this.autoLogin = autoLogin;
+            this.remeberPassword = !password;
         });
     }
     set(history) {
@@ -33,9 +37,9 @@ class Manager extends EventEmitter {
         });
     }
     saveHistory(obj) {
-        const {userid, password} = obj;
+        const {userid, password} = this;
         var history = this.history;
-        history = _.reject(history, (o)=>o.userid===obj.userid);
+        history = _.reject(history, (o)=>o.userid===userid);
         history.unshift({userid, password:this.remeberPassword?password:'', autoLogin:this.autoLogin});
         this.set(history);
     }
@@ -43,11 +47,10 @@ class Manager extends EventEmitter {
         this.history = [];
         AsyncStorage.removeItem(ITEM_NAME);
     }
-    login(params, callback) {
-        const {userid, password, autoLogin, remeberPassword} = params;
+    login(params) {
+        let {userid, password, autoLogin, remeberPassword} = params||{};
         if (!app.chatconnect) {
             Toast('服务器未连接');
-            callback && callback();
             return;
         }
         this.reconnect = !params;
@@ -65,27 +68,28 @@ class Manager extends EventEmitter {
             return;
         }
         var param = {
-            userid: userid,
-            password: password,
+            userid,
+            password,
         };
         app.showWait();
         app.socket.emit('USER_LOGIN_RQ', param);
     }
     onLogin(obj) {
-        console.log(obj);
         app.hideWait();
         if (obj.error) {
             app.showError(obj.error);
             return;
         }
         if (!this.reconnect) {
-            this.saveHistory(obj);
+            this.saveHistory();
         }
         app.socket.emit('USER_LOGIN_SUCCESS_NFS');
         this.online = true;
+        this.sign = obj.sign;
+        this.username = obj.username;
         // app.messageMgr.getNewestMessage();
         app.navigator.replace({
-            component: require('../modules/home/index.js'),
+            component: require('../../modules/home/index.js'),
         });
     }
     onRegister(obj) {

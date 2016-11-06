@@ -126,8 +126,8 @@ module.exports = React.createClass({
         this.closeSplash();
     },
     changeToNextPage() {
-        const history = app.loginMgr.history[0]||{};
-        if (history.autoLogin) {
+        app.closeModal();
+        if (app.chatconnect && app.loginMgr.autoLogin) {
             app.loginMgr.login();
         } else {
             this.changeToLoginPage();
@@ -150,7 +150,7 @@ module.exports = React.createClass({
             'rgba(0, 0, 0, 0)'
         );
         // this.checkJSCodeUpdate();
-        this.setTimeout(()=>{this.changeToNextPage()}, app.isandroid?1000:500);
+        this.setTimeout(()=>{this.changeToNextPage()}, 1000);
     },
     render() {
         var components = {};
