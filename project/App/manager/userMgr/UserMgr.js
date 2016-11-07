@@ -11,13 +11,16 @@ class Manager extends EventEmitter {
         super();
         this.reset();
 	}
+    emitChange() {
+        this.emit('USER_LIST_CHANGE_EVENT');
+    }
+    addEventListener(target) {
+        target.addListenerOn(this, "USER_LIST_CHANGE_EVENT", target.onEventListener);
+    };
     reset() {
         this.users = {};
         this.groupedUsers = {}; //use alpha grouped
         this.init = false;
-    }
-    emitChange() {
-        this.emit('USER_LIST_CHANGE');
     }
     add(obj) {
         var users = this.users;
@@ -54,7 +57,7 @@ class Manager extends EventEmitter {
             var userid =list[i].userid;
             if(!users.hasOwnProperty(userid)) {
                 users[userid] = list[i];
-                    this.addGroupedUser(userid);
+                this.addGroupedUser(userid);
             }
         }
         this.emitChange();
@@ -70,6 +73,9 @@ class Manager extends EventEmitter {
         var list = this.groupedUsers;
         if (!list[alpha]) {
             list[alpha] = [];
+            this.groupedUsers = {};
+            Object.keys(list).sort().forEach((o)=>{this.groupedUsers[o]=list[o]}); //按照字母排序
+            list = this.groupedUsers;
         }
         list[alpha].push(userid);
     }

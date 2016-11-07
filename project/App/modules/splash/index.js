@@ -120,7 +120,6 @@ module.exports = React.createClass({
     },
     changeToNextPage() {
         if (app.chatconnect && app.loginMgr.autoLogin) {
-            console.log("=======", app.loginMgr);
             app.loginMgr.login();
             this.closeSplash();
         } else {

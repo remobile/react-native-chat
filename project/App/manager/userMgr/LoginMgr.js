@@ -75,7 +75,6 @@ class Manager extends EventEmitter {
         app.socketMgr.emit('USER_LOGIN_RQ', param, true);
     }
     onLogin(obj) {
-        console.log("onLogin:", obj);
         app.hideWait();
         if (obj.error) {
             app.showError(obj.error);
