@@ -26,7 +26,7 @@ class Manager extends EventEmitter {
             this.userid = userid;
             this.password = password;
             this.autoLogin = autoLogin;
-            this.remeberPassword = !password;
+            this.remeberPassword = !!password;
         });
     }
     set(history) {
@@ -75,6 +75,7 @@ class Manager extends EventEmitter {
         app.socket.emit('USER_LOGIN_RQ', param);
     }
     onLogin(obj) {
+        console.log("========", obj);
         app.hideWait();
         if (obj.error) {
             app.showError(obj.error);

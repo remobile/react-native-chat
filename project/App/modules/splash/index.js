@@ -13,7 +13,6 @@ var TimerMixin = require('react-timer-mixin');
 var SplashScreen = require('@remobile/react-native-splashscreen');
 var Login = require('../login/Login.js');
 // var Login = require('../remobile/index.js');
-var Home = require('../home/index.js');
 var Update = require('@remobile/react-native-update');
 
 var {ProgressBar} = COMPONENTS;
@@ -119,16 +118,11 @@ module.exports = React.createClass({
         });
         this.closeSplash();
     },
-    changeToHomePage() {
-        app.navigator.replace({
-            component: Home,
-        });
-        this.closeSplash();
-    },
     changeToNextPage() {
-        app.closeModal();
         if (app.chatconnect && app.loginMgr.autoLogin) {
+            console.log("=======", app.loginMgr);
             app.loginMgr.login();
+            this.closeSplash();
         } else {
             this.changeToLoginPage();
         }
