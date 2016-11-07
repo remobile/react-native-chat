@@ -7,7 +7,7 @@ var io = require('socket.io-client/socket.io');
 
 class Manager {
     register() {
-        const {loginMgr, userMgr, groupMgr, messageMgr, personalInfo, callMgr} = app;
+        const {loginMgr, userMgr, notifyMgr, groupMgr, messageMgr, personalInfo, callMgr} = app;
         this.socket = io.connect('ws://127.0.0.1:8888', {
             connect_timeout: 3000,
             transports: ['websocket'],

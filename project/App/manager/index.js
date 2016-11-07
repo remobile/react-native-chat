@@ -11,9 +11,8 @@ module.exports = {
 	// call: require('./callMgr/CallMgr'),
 	// group: require('./groupMgr/GroupMgr'),
 	// message: require('./messageMgr/MessageMgr'),
-	// router: require('./socketMgr/Router'),
 	socketMgr: require('./socketMgr/SocketMgr'),
-	// notifyMgr: require('./userMgr/NotifyMgr'),
+	notifyMgr: require('./userMgr/NotifyMgr'),
 	loginMgr: require('./userMgr/LoginMgr'),
 	userMgr: require('./userMgr/UserMgr'),
 };

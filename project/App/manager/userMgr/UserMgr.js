@@ -112,3 +112,5 @@ class Manager extends EventEmitter {
         }
     }
 }
+
+module.exports = new Manager();

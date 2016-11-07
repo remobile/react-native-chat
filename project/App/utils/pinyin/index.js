@@ -10,7 +10,7 @@ module.exports =  function(ch) {
     if (uni >= 97 && uni <=122) {
         return String.fromCharCode(uni-32);
     }
-    if (uni > 40869 || uni < 19968) //����ں��ִ��?Χ֮��,����#
+    if (uni > 40869 || uni < 19968)
     return "#";
     return strChineseFirstPY.charAt(uni - 19968);
 };
