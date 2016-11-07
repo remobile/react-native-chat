@@ -72,10 +72,10 @@ class Manager extends EventEmitter {
             password,
         };
         app.showWait();
-        app.socket.emit('USER_LOGIN_RQ', param);
+        app.socketMgr.emit('USER_LOGIN_RQ', param, true);
     }
     onLogin(obj) {
-        console.log("========", obj);
+        console.log("onLogin:", obj);
         app.hideWait();
         if (obj.error) {
             app.showError(obj.error);
@@ -84,10 +84,10 @@ class Manager extends EventEmitter {
         if (!this.reconnect) {
             this.saveHistory();
         }
-        app.socket.emit('USER_LOGIN_SUCCESS_NFS');
         this.online = true;
         this.sign = obj.sign;
         this.username = obj.username;
+        app.socketMgr.emit('USER_LOGIN_SUCCESS_NFS');
         // app.messageMgr.getNewestMessage();
         app.navigator.replace({
             component: require('../../modules/home/index.js'),

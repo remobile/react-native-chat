@@ -13,7 +13,7 @@ module.exports = {
 	// message: require('./messageMgr/MessageMgr'),
 	// router: require('./socketMgr/Router'),
 	socketMgr: require('./socketMgr/SocketMgr'),
-	// notify: require('./userMgr/NotifyMgr'),
+	// notifyMgr: require('./userMgr/NotifyMgr'),
 	loginMgr: require('./userMgr/LoginMgr'),
-	// user: require('./userMgr/UserMgr'),
+	userMgr: require('./userMgr/UserMgr'),
 };
