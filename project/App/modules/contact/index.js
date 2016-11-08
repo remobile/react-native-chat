@@ -13,6 +13,11 @@ var IndexedListView =  require('@remobile/react-native-indexed-listview');
 
 module.exports = React.createClass({
     mixins: [Subscribable.Mixin],
+    getInitialState() {
+        return {
+            list: Object.assign({}, app.userMgr.groupedUsers),
+        }
+    },
     componentWillMount() {
         app.userMgr.addUserListChangeListener(this);
     },
@@ -21,20 +26,15 @@ module.exports = React.createClass({
             list: Object.assign({}, app.userMgr.groupedUsers),
         });
     },
-    getInitialState() {
-        return {
-            list: Object.assign({}, app.userMgr.groupedUsers),
-        }
-    },
     renderRow(obj, sectionID, rowID) {
         var {username} = app.userMgr.users[obj];
         return (
             <View style={styles.row}>
-            <Image
-                resizeMode='stretch'
-                source={app.img.login_qq_button}
-                style={styles.avatar}
-                />
+                <Image
+                    resizeMode='stretch'
+                    source={app.img.login_qq_button}
+                    style={styles.avatar}
+                    />
                 <Text sytle={styles.username}>{username}</Text>
             </View>
         )
