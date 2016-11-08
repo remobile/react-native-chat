@@ -14,9 +14,9 @@ var IndexedListView =  require('@remobile/react-native-indexed-listview');
 module.exports = React.createClass({
     mixins: [Subscribable.Mixin],
     componentWillMount() {
-        app.userMgr.addEventListener(this);
+        app.userMgr.addUserListChangeListener(this);
     },
-    onEventListener() {
+    onUserListChangeListener() {
         this.setState({
             list: Object.assign({}, app.userMgr.groupedUsers),
         });

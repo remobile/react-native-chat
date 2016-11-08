@@ -29,6 +29,8 @@ global.DelayTouchableOpacity = COMPONENTS.DelayTouchableOpacity;
 
 var ProgressHud = COMPONENTS.ProgressHud;
 var TimerMixin = require('react-timer-mixin');
+var Sqlite = require('@remobile/react-native-sqlite');
+var CacheImage = require('@remobile/react-native-cache-image');
 var Utils = require('./utils/common/index.js');
 var Route = require('./config/Route.js');
 var Error = require('./config/Error.js');
@@ -42,9 +44,11 @@ global.app = {
     img: img,
     aud: aud,
     data: {},
+    db: Sqlite.openDatabase(CONSTANTS.DB_NAME),
     isandroid: Platform.OS==="android",
     ...manager
 };
+CacheImage.init(app.db);
 
 app.configureScene = function(route) {
     route = route||{};

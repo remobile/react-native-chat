@@ -14,8 +14,8 @@ class Manager extends EventEmitter {
     emitChange() {
         this.emit('USER_LIST_CHANGE_EVENT');
     }
-    addEventListener(target) {
-        target.addListenerOn(this, "USER_LIST_CHANGE_EVENT", target.onEventListener);
+    addUserListChangeListener(target) {
+        target.addListenerOn(this, "USER_LIST_CHANGE_EVENT", target.onUserListChangeListener);
     };
     reset() {
         this.users = {};

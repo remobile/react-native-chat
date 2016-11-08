@@ -27,6 +27,7 @@ module.exports = {
     ISSUE_IOS: CONFIG.ISSUE_IOS,
     NOT_NEED_UPDATE_JS_START: !(CONFIG.ISSUE || TEST_CONFIG.ISSUE), //启动时不需要更新小版本
     MINIFY: CONFIG.ISSUE, //是否压缩js文件，我们采取测试服务器为了查找问题不用压缩js文件，正式服务器需要压缩js文件，并且不能看到调试信息
+    DB_NAME: 'chat_db',
     //IOS的appid
     IOS_APPID: '',
     //web服务器

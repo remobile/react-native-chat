@@ -10,12 +10,10 @@ MESSAGE_BADGES = 'MESSAGE_BADGES',
 GROUP_MESSAGE_BADGES = 'GROUP_MESSAGE_BADGES',
 GROUP_CHAT_AT_NUMBERS = 'GROUP_CHAT_AT_NUMBERS';
 
-const ITEM_NAME = "personalInfo";
+const ITEM_NAME = "MESSAGE_MANAGER";
 
 class Manager extends EventEmitter {
     constructor() {
-        this.msgid = localStorage.msgid||1;
-
         //message type
         this.TEXT_TYPE = 0;
         this.IMAGE_TYPE = 1;
@@ -32,13 +30,43 @@ class Manager extends EventEmitter {
         this.newestMessage = [];
         this.displayMessage = [];
         this.displayMessageInfo = {};
+        this.get();
         this.getUnreadMessage();
     }
+    get() {
+        return new Promise(async(resolve, reject)=>{
+            var data = {msgid: 1};
+            try {
+                var infoStr = await AsyncStorage.getItem(ITEM_NAME);
+                data = JSON.parse(infoStr);
+            } catch(e) {
+                data = {msgid: 1};
+            }
+            this.data = data;
+        });
+    }
+    set(data) {
+        return new Promise(async(resolve, reject)=>{
+            this.data = data;
+            await AsyncStorage.setItem(ITEM_NAME, JSON.stringify(data));
+            resolve();
+        });
+    }
+    setUserID(userid) {
+        this.userid = userid;
+        this.NEWEST_MESSAGE_COLLECTION = 'NEWEST_MESSAGE_COLLECTION_'+userid;
+        this.NEWEST_MESSAGE_COLLECTION = 'NEWEST_MESSAGE_COLLECTION_'+userid;
+    }
     getUnreadMessage() {
+        // this.unreadMessage = {
+        //     group: us.object(GROUP_MESSAGE_BADGES)||{},
+        //     users: us.object(MESSAGE_BADGES)||{},
+        //     at: us.object(GROUP_CHAT_AT_NUMBERS)||{}
+        // };
         this.unreadMessage = {
-            group: us.object(GROUP_MESSAGE_BADGES)||{},
-            users: us.object(MESSAGE_BADGES)||{},
-            at: us.object(GROUP_CHAT_AT_NUMBERS)||{}
+            group: {},
+            users: {},
+            at: {}
         };
         var obj = this.unreadMessage.group;
         var total = 0;
@@ -52,37 +80,33 @@ class Manager extends EventEmitter {
         this.unreadMessage.total = total;
     }
     emitNewestMessageChange() {
-        this.emit("newest_message_change");
+        this.emit("NEWEST_MESSAGE_CHANGE_EVENT");
     }
-    addNewestMessageChangeListener(callback) {
-        this.on("newest_message_change", callback);
-    }
-    removeNewestMessageChangeListener(callback) {
-        this.removeListener("newest_message_change", callback);
+    addNewestMessageChangeListener(target) {
+        target.addListenerOn(this, "NEWEST_MESSAGE_CHANGE_EVENT", target.onNewestMessageChangeListener);
     }
     emitDisplayMessageChange() {
-        this.emit("display_message_change");
+        this.emit("DISPLAY_MESSAGE_CHANGE_EVENT");
     }
     addDisplayMessageChangeListener(callback) {
-        this.on("display_message_change", callback);
-    }
-    removeDisplayMessageChangeListener(callback) {
-        this.removeListener("display_message_change", callback);
+        target.addListenerOn(this, "DISPLAY_MESSAGE_CHANGE_EVENT", target.onDisplayMessageChangeListener);
     }
     increaseMsgId() {
-        this.msgid++;
-        if (!this.msgid) {
-            this.msgid = 1;
+        this.data.msgid++;
+        if (!this.data.msgid) {
+            this.data.msgid = 1;
         }
-        localStorage.msgid = this.msgid;
+        this.set(this.data);
     }
     getNewestMessage() {
         var self = this;
-        app.db_newest_message.find(function (err, docs) {
-            self.newestMessage = _.sortBy(docs, function(obj) {
-                return -obj.time;
+        app.db.transaction((tx)=>{
+            tx.executeSql('SELECT * FROM '+StorageMgr.TABLE_CACHE_IMAGE+' ORDER BY time DESC', [], function (tx, rs) {
+                self.newestMessage = rs.rows;
+                self.emitNewestMessageChange();
             });
-            self.emitNewestMessageChange();
+        }, (error)=>{
+            console.log('subImageRef <error>', url, error);
         });
     }
     getUserMessage(userid, time) {
@@ -224,19 +248,19 @@ class Manager extends EventEmitter {
     }
     sendUserMessage(users, msg, msgtype) {
         this.increaseMsgId();
-        app.emit('USER_SEND_MESSAGE_RQ', {type:this.USER_TYPE, to:users, msg:msg, msgtype:msgtype, msgid:this.msgid});
+        app.emit('USER_SEND_MESSAGE_RQ', {type:this.USER_TYPE, to:users, msg:msg, msgtype:msgtype, msgid:this.data.msgid});
         var list = users.split(',');
         var time = Date.now();
         for (var i= 0,len=list.length; i<len; i++) {
             var userid = list[i];
-            this.showNewestMessage(this.USER_TYPE, userid, null,  time, msg, msgtype, this.msgid);
+            this.showNewestMessage(this.USER_TYPE, userid, null,  time, msg, msgtype, this.data.msgid);
         }
     }
     sendGroupMessage(groupid, msg, msgtype, touserid) {
         this.increaseMsgId();
-        app.emit('USER_SEND_MESSAGE_RQ', {type:this.GROUP_TYPE, to:groupid, msg:msg, msgtype:msgtype, msgid:this.msgid, touserid:touserid});
+        app.emit('USER_SEND_MESSAGE_RQ', {type:this.GROUP_TYPE, to:groupid, msg:msg, msgtype:msgtype, msgid:this.data.msgid, touserid:touserid});
         var time = Date.now();
-        this.showNewestMessage(this.GROUP_TYPE, app.loginMgr.userid, groupid, time, msg, msgtype, this.msgid, touserid);
+        this.showNewestMessage(this.GROUP_TYPE, app.loginMgr.userid, groupid, time, msg, msgtype, this.data.msgid, touserid);
     }
     onSendUserMessage(obj) {
         if (obj.error) {
