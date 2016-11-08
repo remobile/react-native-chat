@@ -11,30 +11,9 @@ var {
     ActivityIndicator,
 } = ReactNative;
 
-var moment = require('moment');
 var InvertibleScrollView = require('react-native-invertible-scroll-view');
 var MessageContainer = require('./MessageContainer.js');
-
-moment.locale('zh-cn', {
-    monthsShort : '1月_2月_3月_4月_5月_6月_7月_8月_9月_10月_11月_12月'.split('_'),
-    weekdaysShort : '周日_周一_周二_周三_周四_周五_周六'.split('_'),
-    meridiem : function (hour, minute, isLower) {
-        var hm = hour * 100 + minute;
-        if (hm < 600) {
-            return '凌晨';
-        } else if (hm < 900) {
-            return '早上';
-        } else if (hm < 1130) {
-            return '上午';
-        } else if (hm < 1230) {
-            return '中午';
-        } else if (hm < 1800) {
-            return '下午';
-        } else {
-            return '晚上';
-        }
-    },
-});
+var getTimeLabel = require('./getTimeLabel.js');
 
 /*loading more status change graph
 *
@@ -111,22 +90,11 @@ module.exports = React.createClass({
         this.pageNo++;
         this.getList();
     },
-    getTimeLabel(item) {
-        let now = moment(), time = moment(item.time);
-        if (now.isSame(time, 'day')) {
-            return time.format('A HH:mm');
-        } else if (now.startOf('day').diff(time.startOf('day'), 'day') == 1) {
-            return time.format('昨天 A HH:mm');
-        } else if (now.isSame(time, 'week')) {
-            return time.format('ddd A HH:mm');
-        }
-        return time.format('MMMD日 A HH:mm');
-    },
     getListWithTimeLabel(list) {
         let lastItem = _.last(this.list)||{};
         let lastTimeLabel = lastItem.timeLabel;
         list.forEach((item)=>{
-            let timeLabel = this.getTimeLabel(item);
+            let timeLabel = getTimeLabel(item.time);
             if (lastTimeLabel === timeLabel) {
                 if (lastItem.timeLabel) {
                     lastItem.timeLabel = undefined;

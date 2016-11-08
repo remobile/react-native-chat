@@ -13,13 +13,14 @@ var {
 import TabNavigator from 'react-native-tab-navigator';
 var Test = require('../test');
 var Contact = require('../contact');
+var Message = require('../message');
 var Empty = require('./Empty.js');
 
 var INIT_ROUTE_INDEX = 0;
 var ROUTE_STACK = [
-    {index: 0, component: Contact},
-    {index: 1, component: Test},
-    {index: 2, component: Empty},
+    {index: 0, component: Message},
+    {index: 1, component: Contact},
+    {index: 2, component: Test},
     {index: 3, component: Empty},
 ];
 if (CONSTANTS.ISSUE_IOS) {

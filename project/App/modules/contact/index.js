@@ -26,8 +26,8 @@ module.exports = React.createClass({
             list: Object.assign({}, app.userMgr.groupedUsers),
         });
     },
-    renderRow(obj, sectionID, rowID) {
-        var {username} = app.userMgr.users[obj];
+    renderRow(obj) {
+        var {username, online} = app.userMgr.users[obj];
         return (
             <View style={styles.row}>
                 <Image
@@ -35,7 +35,7 @@ module.exports = React.createClass({
                     source={app.img.login_qq_button}
                     style={styles.avatar}
                     />
-                <Text sytle={styles.username}>{username}</Text>
+                <Text style={[styles.username, {color: online?'green':'gray'}]}>{username}</Text>
             </View>
         )
     },

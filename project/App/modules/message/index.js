@@ -10,14 +10,15 @@ var {
 } = ReactNative;
 
 var Subscribable = require('Subscribable');
-var IndexedListView =  require('@remobile/react-native-indexed-listview');
+const images = require('../text/expressions').images;
+var getTimeLabel = require('../text/getTimeLabel.js');
 
 module.exports = React.createClass({
     mixins: [Subscribable.Mixin],
     getInitialState() {
         this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         return {
-            dataSource: ds.cloneWithRows(app.userMgr.newestMessage),
+            dataSource: this.ds.cloneWithRows(app.messageMgr.newestMessage),
         }
     },
     componentWillMount() {
@@ -25,10 +26,10 @@ module.exports = React.createClass({
         app.messageMgr.addNewestMessageChangeListener(this);
     },
     onUserListChangeListener() {
-        this.setState({dataSource: ds.cloneWithRows(app.userMgr.newestMessage)});
+        this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.newestMessage)});
     },
     onNewestMessageChangeListener() {
-        this.setState({dataSource: ds.cloneWithRows(app.userMgr.newestMessage)});
+        this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.newestMessage)});
     },
     showMessageInfo: function(passProps) {
         // app.navigator.push({
@@ -41,8 +42,40 @@ module.exports = React.createClass({
             <View style={styles.separator} key={rowID}/>
         );
     },
+    parseWordsListFromText(text) {
+        const {fontSize} = StyleSheet.flatten(styles.msg);
+        const emojiStyle = {style:{width:fontSize, height:fontSize, marginHorizontal:1}};
+        let line = [];
+        let hasEscapeStart = false, escapeText = '';
+        for(var i = 0, len = text.length; i < len; i++) {
+            let char = text.charAt(i);
+            if (char === '\n') {
+                break;
+            } else if (char === ':') {
+                if (!hasEscapeStart) {
+                    hasEscapeStart = true;
+                } else {
+                    if (!escapeText) {
+                        line.push(<Text key={i}>:</Text>);
+                    } else {
+                        line.push(<Image key={i} resizeMode='stretch' source={images[escapeText]} {...emojiStyle} />);
+                    }
+                    hasEscapeStart = false;
+                    escapeText = '';
+                }
+            } else {
+                if (hasEscapeStart) {
+                    escapeText += char;
+                } else {
+                    line.push(<Text key={i}>{char}</Text>);
+                }
+            }
+        }
+        return line;
+    },
     renderRow(obj) {
         var {type, userid, groupid, time, msg, msgtype, touserid} = obj;
+        console.log(time);
         var user = app.userMgr.users[userid];
         var username = (userid===app.loginMgr.userid)?"我":(user.username);
         var isGroup = (msg.type===app.messageMgr.GROUP_TYPE);
@@ -54,9 +87,9 @@ module.exports = React.createClass({
                     style={styles.avatar}
                     />
                 <View style={styles.messageContainer}>
-                    <Text sytle={styles.username}>{username}</Text>
-                    <Text sytle={styles.msg}>{msg}</Text>
-                    <Text sytle={styles.time}>{msg}</Text>
+                    <Text style={styles.username} numberOfLines={1}>{username}</Text>
+                    <Text style={styles.msg} numberOfLines={1}>{this.parseWordsListFromText('msgsa:::1::::3:::dfhasjkdfhasdkjfhasdkjfhaskdjfhjksadfhksajdfhjsadk123123123123213')}</Text>
+                    <Text style={styles.time}>{getTimeLabel(time)}</Text>
                 </View>
             </View>
         )
@@ -66,7 +99,7 @@ module.exports = React.createClass({
         return (
             <View style={styles.container}>
                 <ListView
-                    style={styles.list}
+                    enableEmptySections={true}
                     dataSource={this.state.dataSource}
                     renderRow={this.renderRow}
                     renderSeparator={this.renderSeparator}
@@ -85,26 +118,34 @@ var styles = StyleSheet.create({
         backgroundColor: '#CCC'
     },
     row: {
-        paddingVertical:10,
+        paddingVertical:6,
         flexDirection: 'row',
         alignItems: 'center',
     },
     avatar: {
-        height: 50,
-        width: 50,
-        borderRadius: 25,
-        marginHorizontal: 20,
+        height: 60,
+        width: 60,
+        borderRadius: 30,
+        marginHorizontal: 10,
     },
     messageContainer: {
-
+        flex: 1,
+        paddingRight: 80,
+        height: 60,
+        justifyContent: 'space-around',
     },
     username: {
-        fontSize: 16,
-    }
+        fontSize: 18,
+    },
     msg: {
-        fontSize: 16,
-    }
+        fontSize: 14,
+        color: 'gray',
+        lineHeight: 26,
+    },
     time: {
-        fontSize: 16,
-    }
+        fontSize: 13,
+        position: 'absolute',
+        right: 10,
+        top: 0,
+    },
 });

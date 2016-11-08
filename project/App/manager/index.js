@@ -10,7 +10,7 @@ module.exports = {
 	//chat
 	// call: require('./callMgr/CallMgr'),
 	// group: require('./groupMgr/GroupMgr'),
-	message: require('./messageMgr/MessageMgr'),
+	messageMgr: require('./messageMgr/MessageMgr'),
 	socketMgr: require('./socketMgr/SocketMgr'),
 	notifyMgr: require('./userMgr/NotifyMgr'),
 	loginMgr: require('./userMgr/LoginMgr'),
