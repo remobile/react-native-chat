@@ -19,12 +19,6 @@ var EmojiInputBox = require('../text/index.js');
 module.exports = React.createClass({
     componentWillMount() {
         SplashScreen.hide();
-        this._panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: (e, gestureState) => true,
-            onPanResponderGrant: (e, gestureState) => {
-                this.emojiInputBox.hideKeyboard();
-            },
-        });
     },
     render() {
         return (

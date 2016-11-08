@@ -7,11 +7,13 @@ var {
     Text,
     Image,
     ListView,
+    TouchableHighlight,
 } = ReactNative;
 
 var Subscribable = require('Subscribable');
 const images = require('../text/expressions').images;
 var getTimeLabel = require('../text/getTimeLabel.js');
+var MessageInfo = require('../text/index.js');
 
 module.exports = React.createClass({
     mixins: [Subscribable.Mixin],
@@ -32,10 +34,10 @@ module.exports = React.createClass({
         this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.newestMessage)});
     },
     showMessageInfo: function(passProps) {
-        // app.navigator.push({
-        //     component: MessageInfo,
-        //     passProps,
-        // });
+        app.navigator.push({
+            component: MessageInfo,
+            passProps,
+        });
     },
     renderSeparator(sectionID, rowID) {
         return (
@@ -75,23 +77,24 @@ module.exports = React.createClass({
     },
     renderRow(obj) {
         var {type, userid, groupid, time, msg, msgtype, touserid} = obj;
-        console.log(time);
         var user = app.userMgr.users[userid];
         var username = (userid===app.loginMgr.userid)?"我":(user.username);
         var isGroup = (msg.type===app.messageMgr.GROUP_TYPE);
         return (
-            <View style={styles.row}>
-                <Image
-                    resizeMode='stretch'
-                    source={app.img.login_qq_button}
-                    style={styles.avatar}
-                    />
-                <View style={styles.messageContainer}>
-                    <Text style={styles.username} numberOfLines={1}>{username}</Text>
-                    <Text style={styles.msg} numberOfLines={1}>{this.parseWordsListFromText('msgsa:::1::::3:::dfhasjkdfhasdkjfhasdkjfhaskdjfhjksadfhksajdfhjsadk123123123123213')}</Text>
-                    <Text style={styles.time}>{getTimeLabel(time)}</Text>
+            <TouchableHighlight underlayColor="#CFCFCF" onPress={this.showMessageInfo.bind(null, {type, userid})}>
+                <View style={styles.row}>
+                    <Image
+                        resizeMode='stretch'
+                        source={app.img.login_qq_button}
+                        style={styles.avatar}
+                        />
+                    <View style={styles.messageContainer}>
+                        <Text style={styles.username} numberOfLines={1}>{username}</Text>
+                        <Text style={styles.msg} numberOfLines={1}>{this.parseWordsListFromText(msg)}</Text>
+                        <Text style={styles.time}>{getTimeLabel(time)}</Text>
+                    </View>
                 </View>
-            </View>
+            </TouchableHighlight>
         )
     },
     render() {
