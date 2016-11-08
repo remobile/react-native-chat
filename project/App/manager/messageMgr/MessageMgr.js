@@ -49,10 +49,19 @@ class Manager extends EventEmitter {
             resolve();
         });
     }
-    setUserID(userid) {
+    init(userid) {
         this.userid = userid;
-        this.NEWEST_MESSAGE_COLLECTION = 'NEWEST_MESSAGE_COLLECTION_'+userid;
-        this.NEWEST_MESSAGE_COLLECTION = 'NEWEST_MESSAGE_COLLECTION_'+userid;
+        this.NEWEST_MESSAGE_TABLE = 'NEWEST_MESSAGE_TABLE_'+userid;
+        this.HISTORY_MESSAGE_TABLE = 'HISTORY_MESSAGE_TABLE_'+userid;
+        db.transaction((tx)=>{
+            tx.executeSql(`CREATE TABLE IF NOT EXISTS ? (type integer, userid varchar(11), groupid varchar(40),
+            time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`, [this.NEWEST_MESSAGE_TABLE]);
+            tx.executeSql(`CREATE TABLE IF NOT EXISTS ? (type integer, userid varchar(11), groupid varchar(40),
+            time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`, [this.HISTORY_MESSAGE_TABLE]);
+            this.getNewestMessage(tx);
+        }, (error)=>{
+            console.log('init <error>', error);
+        });
     }
     emitNewestMessageChange() {
         this.emit("NEWEST_MESSAGE_CHANGE_EVENT");
@@ -73,24 +82,19 @@ class Manager extends EventEmitter {
         }
         this.set();
     }
-    getNewestMessage() {
-        var self = this;
-        app.db.transaction((tx)=>{
-            tx.executeSql('SELECT * FROM newest_message ORDER BY time DESC', [], (tx, rs)=>{
-                var {rows} = rs;
-                for (var i = 0, len = rows.length; i < len; i++){
-                    self.newestMessage.push(rows.item(i));
-                }
-                self.emitNewestMessageChange();
-            });
-        }, (error)=>{
-            console.log('getNewestMessage <error>');
+    getNewestMessage(tx) {
+        tx.executeSql('SELECT * FROM newest_message ORDER BY time DESC', [], (tx, rs)=>{
+            var {rows} = rs;
+            for (var i = 0, len = rows.length; i < len; i++){
+                self.newestMessage.push(rows.item(i));
+            }
+            self.emitNewestMessageChange();
         });
     }
     getUserMessage(userid, page) {
         app.db.transaction((tx)=>{
-            tx.executeSql('SELECT * FROM history_message WHERE userid=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?',
-            [userid, this.USER_TYPE, self.PER_COUNT, self.PER_COUNT*page], (tx, rs)=>{
+            tx.executeSql('SELECT * FROM ? WHERE userid=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?',
+            [this.HISTORY_MESSAGE_TABLE, userid, this.USER_TYPE, self.PER_COUNT, self.PER_COUNT*page], (tx, rs)=>{
                 var {rows} = rs, docs = [];
                 for (var i = 0, len = rows.length; i < len; i++){
                     docs.push(rows.item(len-i-1));
@@ -99,13 +103,13 @@ class Manager extends EventEmitter {
                 self.emitDisplayMessageChange();
             });
         }, (error)=>{
-            console.log('getUserMessage <error>');
+            console.log('getUserMessage <error>', error);
         });
     }
     getGroupMessage(groupid, page) {
         app.db.transaction((tx)=>{
-            tx.executeSql('SELECT * FROM history_message WHERE groupid=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?',
-            [groupid, this.GROUP_TYPE, self.PER_COUNT, self.PER_COUNT*page], (tx, rs)=>{
+            tx.executeSql('SELECT * FROM ? WHERE groupid=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?',
+            [this.HISTORY_MESSAGE_TABLE, groupid, this.GROUP_TYPE, self.PER_COUNT, self.PER_COUNT*page], (tx, rs)=>{
                 var {rows} = rs, docs = [];
                 for (var i = 0, len = rows.length; i < len; i++){
                     docs.push(rows.item(len-i-1));
@@ -114,7 +118,7 @@ class Manager extends EventEmitter {
                 self.emitDisplayMessageChange();
             });
         }, (error)=>{
-            console.log('getGroupMessage <error>');
+            console.log('getGroupMessage <error>', error);
         });
     }
     increaseUserUnreadNotify(userid) {
@@ -150,40 +154,40 @@ class Manager extends EventEmitter {
     }
     removeLeftGroupMessages(groupid) {
         this.clearGroupUnreadNotify(groupid);
+        self.emitNewestMessageChange();
         app.db.transaction((tx)=>{
-            tx.executeSql('DELETE FROM newest_message WHERE type=? AND groupid=?', [type, groupid], (tx, rs)=>{
-                self.emitNewestMessageChange();
-            });
+            tx.executeSql('DELETE FROM ? WHERE type=? AND groupid=?', [this.NEWEST_MESSAGE_TABLE, type, groupid]);
+            tx.executeSql('DELETE FROM ? WHERE type=? AND groupid=?', [this.HISTORY_MESSAGE_TABLE, type, groupid]);
         }, (error)=>{
-            console.log('removeLeftGroupMessages <error>');
-        });
-        app.db.transaction((tx)=>{
-            tx.executeSql('DELETE FROM history_message WHERE type=? AND groupid=?', [type, groupid], (tx, rs)=>{
-            });
-        }, (error)=>{
-            console.log('removeLeftGroupMessages <error>');
+            console.log('removeLeftGroupMessages <error>', error);
         });
     }
     showNewestMessage(type, userid, groupid, time, msg, msgtype, send, touserid) {
         var display;
-        var isGroup = (type===this.GROUP_TYPE);
-        if (isGroup) {
+        send = send ? 1 : 0;
+        touserid = touserid||'';
+        groupid = groupid||'';
+
+        if (type===this.GROUP_TYPE) {
             display = this.displayMessageInfo.target===groupid;
             if (!(app.state.currentView==="messageInfo" && display)) {
                 this.increaseGroupUnreadNotify(groupid, touserid);
             }
             this.newestMessage = _.reject(this.newestMessage, (item)=>item.groupid==groupid&&item.type==type);
             this.newestMessage.unshift({type, userid, groupid, time, msg, msgtype, touserid});
-            tx.executeSql('UPDATE newest_message SET userid=?, time=?, msg=?, msgtype=?, send=?, touserid=? WHERE type=? AND groupid=?',
-                [userid, time, msg, msgtype, send, touserid, type, groupid], (tx, rs)=>{
-                if (rs.rowsAffected == 0) {
-                    tx.executeSql('INSERT INTO newest_message (type, userid, groupid, time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                    [type, userid, groupid, time, msg, msgtype, send, touserid], (tx, rs)=>{
-                        //console.log('subImageRef <insert>', url, size);
-                    });
-                }
+            app.db.transaction((tx)=>{
+                tx.executeSql('UPDATE newest_message SET userid=?, time=?, msg=?, msgtype=?, send=?, touserid=? WHERE type=? AND groupid=?',
+                    [userid, time, msg, msgtype, send, touserid, type, groupid], (tx, rs)=>{
+                    if (rs.rowsAffected == 0) {
+                        tx.executeSql('INSERT INTO newest_message (type, userid, groupid, time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        [type, userid, groupid, time, msg, msgtype, send, touserid]);
+                    }
+                });
+                tx.executeSql('INSERT INTO ? (type, userid, groupid, time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [this.HISTORY_MESSAGE_TABLE, type, userid, groupid, time, msg, msgtype, send, touserid]);
+            }, (error)=>{
+                console.log('removeLeftGroupMessages <error>', error);
             });
-
         } else {
             display = this.displayMessageInfo.target===userid;
             if (!(app.state.currentView==="messageInfo" && display)) {
@@ -191,14 +195,18 @@ class Manager extends EventEmitter {
             }
             this.newestMessage = _.reject(this.newestMessage, (item)=>item.userid==userid&&item.type==type);
             this.newestMessage.unshift({type, userid, groupid, time, msg, msgtype, touserid});
-            tx.executeSql('UPDATE newest_message SET time=?, msg=?, msgtype=?, send=?, touserid=? WHERE type=? AND userid=?',
-                [time, msg, msgtype, send, touserid, type, userid], (tx, rs)=>{
-                if (rs.rowsAffected == 0) {
-                    tx.executeSql('INSERT INTO newest_message (type, userid,  time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [type, userid, time, msg, msgtype, send, touserid], (tx, rs)=>{
-                        //console.log('subImageRef <insert>', url, size);
-                    });
-                }
+            app.db.transaction((tx)=>{
+                tx.executeSql('UPDATE ? SET groupid=?, time=?, msg=?, msgtype=?, send=?, touserid=? WHERE type=? AND userid=?',
+                    [this.NEWEST_MESSAGE_TABLE, groupid, time, msg, msgtype, send, touserid, type, userid], (tx, rs)=>{
+                    if (rs.rowsAffected == 0) {
+                        tx.executeSql('INSERT INTO newest_message (type, userid,  time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        [type, userid, groupid, time, msg, msgtype, send, touserid]);
+                    }
+                });
+                tx.executeSql('INSERT INTO ? (type, userid, groupid, time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [this.HISTORY_MESSAGE_TABLE, type, userid, groupid, time, msg, msgtype, send, touserid]);
+            }, (error)=>{
+                console.log('removeLeftGroupMessages <error>', error);
             });
         }
         this.emitNewestMessageChange();
@@ -207,29 +215,24 @@ class Manager extends EventEmitter {
             this.displayMessage.push(display_message);
             this.emitDisplayMessageChange();
         }
-        app.db.transaction((tx)=>{
-            tx.executeSql('INSERT INTO history_message (type, userid, groupid, time, msg, msgtype, send, touserid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [type, userid, groupid, time, msg, msgtype, send, touserid], (tx, rs)=>{
-            });
-        }, (error)=>{
-            console.log('removeLeftGroupMessages <error>');
-        });
     }
     sendUserMessage(users, msg, msgtype) {
+        var {msgid} = this.data;
         this.increaseMsgId();
-        app.socketMgr.emit('USER_SEND_MESSAGE_RQ', {type:this.USER_TYPE, to:users, msg:msg, msgtype:msgtype, msgid:this.data.msgid});
+        app.socketMgr.emit('USER_SEND_MESSAGE_RQ', {type:this.USER_TYPE, to:users, msg, msgtype, msgid});
         var list = users.split(',');
         var time = Date.now();
         for (var i = 0,len = list.length; i < len; i++) {
             var userid = list[i];
-            this.showNewestMessage(this.USER_TYPE, userid, null,  time, msg, msgtype, this.data.msgid);
+            this.showNewestMessage(this.USER_TYPE, userid, null,  time, msg, msgtype, true);
         }
     }
     sendGroupMessage(groupid, msg, msgtype, touserid) {
+        var {msgid} = this.data;
         this.increaseMsgId();
-        app.socketMgr.emit('USER_SEND_MESSAGE_RQ', {type:this.GROUP_TYPE, to:groupid, msg:msg, msgtype:msgtype, msgid:this.data.msgid, touserid:touserid});
+        app.socketMgr.emit('USER_SEND_MESSAGE_RQ', {type:this.GROUP_TYPE, to:groupid, msg, msgtype:msgtype, msgid, touserid});
         var time = Date.now();
-        this.showNewestMessage(this.GROUP_TYPE, app.loginMgr.userid, groupid, time, msg, msgtype, this.data.msgid, touserid);
+        this.showNewestMessage(this.GROUP_TYPE, app.loginMgr.userid, groupid, time, msg, msgtype, true, touserid);
     }
     onSendUserMessage(obj) {
         if (obj.error) {
@@ -256,7 +259,7 @@ class Manager extends EventEmitter {
             console.log('['+obj.from+']','['+obj.msgid+']:', obj.msg, obj.msgtype, obj.time);
         } else {
             this.addMessageNotification(null, obj.groupid, obj.msg);
-            this.showNewestMessage(this.GROUP_TYPE, obj.from, obj.groupid, obj.time, obj.msg, obj.msgtype, null, obj.touserid);
+            this.showNewestMessage(this.GROUP_TYPE, obj.from, obj.groupid, obj.time, obj.msg, obj.msgtype, false, obj.touserid);
             console.log(' group:'+obj.groupid, ' ['+obj.from+']',' ['+obj.msgid+']:', obj.msg, obj.msgtype, obj.time, obj.touserid);
         }
     }
@@ -282,7 +285,7 @@ class Manager extends EventEmitter {
                 var item = obj[i];
                 if (item.type == this.GROUP_TYPE) {
                     console.log(' [' + item.groupid + ']', ' [' + item.from + '][' + item.time + ']:', item.msg);
-                    this.showNewestMessage(this.GROUP_TYPE, item.from, item.groupid, new Date(item.time).getTime(), item.msg, item.msgtype, null, item.touserid);
+                    this.showNewestMessage(this.GROUP_TYPE, item.from, item.groupid, new Date(item.time).getTime(), item.msg, item.msgtype, false, item.touserid);
                 } else {
                     console.log(' [' + item.from + '][' + new Date(item.time).getTime() + ']:', item.msg);
                     this.showNewestMessage(this.USER_TYPE, item.from, allUsers[item.from].username, new Date(item.time).getTime(), item.msg, item.msgtype);

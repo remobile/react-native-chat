@@ -86,8 +86,8 @@ class Manager extends EventEmitter {
         this.online = true;
         this.sign = obj.sign;
         this.username = obj.username;
+        app.messageMgr.init(this.userid);
         app.socketMgr.emit('USER_LOGIN_SUCCESS_NFS');
-        // app.messageMgr.getNewestMessage();
         app.navigator.replace({
             component: require('../../modules/home/index.js'),
         });
