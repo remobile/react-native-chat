@@ -33,10 +33,10 @@ module.exports = React.createClass({
     onNewestMessageChangeListener() {
         this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.newestMessage)});
     },
-    showMessageInfo: function(passProps) {
+    showMessageInfo: function(type, targetid) {
         app.navigator.push({
             component: MessageInfo,
-            passProps,
+            passProps: {type, targetid},
         });
     },
     renderSeparator(sectionID, rowID) {
@@ -79,9 +79,9 @@ module.exports = React.createClass({
         var {type, userid, groupid, time, msg, msgtype, touserid} = obj;
         var user = app.userMgr.users[userid];
         var username = (userid===app.loginMgr.userid)?"我":(user.username);
-        var isGroup = (msg.type===app.messageMgr.GROUP_TYPE);
+        var isGroup = (type===app.messageMgr.GROUP_TYPE);
         return (
-            <TouchableHighlight underlayColor="#CFCFCF" onPress={this.showMessageInfo.bind(null, {type, userid})}>
+            <TouchableHighlight underlayColor="#CFCFCF" onPress={this.showMessageInfo.bind(null, type, userid)}>
                 <View style={styles.row}>
                     <Image
                         resizeMode='stretch'

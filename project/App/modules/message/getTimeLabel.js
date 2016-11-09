@@ -25,7 +25,7 @@ module.exports = (time) => {
     let now = moment(), date = moment(time);
     if (now.isSame(date, 'day')) {
         return date.format('A HH:mm');
-    } else if (now.startOf('day').diff(date.startOf('day'), 'day') == 1) {
+    } else if (now.startOf('day').diff(moment(time).startOf('day'), 'day') == 1) {
         return date.format('昨天 A HH:mm');
     } else if (now.isSame(date, 'week')) {
         return date.format('ddd A HH:mm');

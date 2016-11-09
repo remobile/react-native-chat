@@ -480,7 +480,7 @@ module.exports = React.createClass({
     },
     render() {
         let {assistText, inputHeight, keyboardShowType, isTextEmpty, keyboardHeight} = this.state;
-        const {keyboardType} = this.props;
+        const {keyboardType, type, targetid} = this.props;
         return (
             <View style={{flex: 1}}>
                 <View style={{flex:1}} >
@@ -488,6 +488,8 @@ module.exports = React.createClass({
                         ref={(ref)=>this.messageList = ref}
                         parseWordsListFromText={this.parseWordsListFromText}
                         hideKeyboard={this.hideKeyboard}
+                        type={type}
+                        targetid={targetid}
                         />
                 </View>
                 <View style={styles.container}>

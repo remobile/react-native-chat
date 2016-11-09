@@ -4,6 +4,7 @@ var {
     AsyncStorage,
 } = ReactNative;
 var EventEmitter = require('EventEmitter');
+var getTimeLabel = require('../../modules/message/getTimeLabel.js');
 
 const ITEM_NAME = "MESSAGE_MANAGER";
 
@@ -24,9 +25,9 @@ class Manager extends EventEmitter {
         this.PER_COUNT = 10;
 
         this.newestMessage = [];
-        this.displayMessage = [];
         this.displayMessageInfo = {};
         this.get();
+        this.resetDisplayMessage();
     }
     get() {
         return new Promise(async(resolve, reject)=>{
@@ -50,19 +51,6 @@ class Manager extends EventEmitter {
             resolve();
         });
     }
-    init(userid) {
-        this.NEWEST_MESSAGE_TABLE = 'NEWEST_MESSAGE_TABLE_'+userid;
-        this.HISTORY_MESSAGE_TABLE = 'HISTORY_MESSAGE_TABLE_'+userid;
-        app.db.transaction((tx)=>{
-            tx.executeSql(`CREATE TABLE IF NOT EXISTS ${this.NEWEST_MESSAGE_TABLE} (type integer, userid varchar(11), groupid varchar(40),
-            time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`);
-            tx.executeSql(`CREATE TABLE IF NOT EXISTS ${this.HISTORY_MESSAGE_TABLE} (type integer, userid varchar(11), groupid varchar(40),
-            time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`);
-            this.getNewestMessage(tx);
-        }, (error)=>{
-            console.log('init <error>', error);
-        });
-    }
     emitNewestMessageChange() {
         this.emit("NEWEST_MESSAGE_CHANGE_EVENT");
     }
@@ -72,7 +60,7 @@ class Manager extends EventEmitter {
     emitDisplayMessageChange() {
         this.emit("DISPLAY_MESSAGE_CHANGE_EVENT");
     }
-    addDisplayMessageChangeListener(callback) {
+    addDisplayMessageChangeListener(target) {
         target.addListenerOn(this, "DISPLAY_MESSAGE_CHANGE_EVENT", target.onDisplayMessageChangeListener);
     }
     increaseMsgId() {
@@ -82,29 +70,59 @@ class Manager extends EventEmitter {
         }
         this.set();
     }
-    getNewestMessage(tx) {
-        tx.executeSql(`SELECT * FROM ${this.NEWEST_MESSAGE_TABLE} ORDER BY time DESC`, [], (tx, rs)=>{
-            var {rows} = rs;
-            for (var i = 0, len = rows.length; i < len; i++){
-                this.newestMessage.push(rows.item(i));
-            }
-            this.emitNewestMessageChange();
+    getNewestMessage(userid) {
+        this.NEWEST_MESSAGE_TABLE = 'NEWEST_MESSAGE_TABLE_'+userid;
+        this.HISTORY_MESSAGE_TABLE = 'HISTORY_MESSAGE_TABLE_'+userid;
+        app.db.transaction((tx)=>{
+            tx.executeSql(`CREATE TABLE IF NOT EXISTS ${this.NEWEST_MESSAGE_TABLE} (type integer, userid varchar(11), groupid varchar(40),
+            time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`);
+            tx.executeSql(`CREATE TABLE IF NOT EXISTS ${this.HISTORY_MESSAGE_TABLE} (type integer, userid varchar(11), groupid varchar(40),
+            time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`);
+            tx.executeSql(`SELECT * FROM ${this.NEWEST_MESSAGE_TABLE} ORDER BY time DESC`, [], (tx, rs)=>{
+                var {rows} = rs;
+                for (var i = 0, len = rows.length; i < len; i++){
+                    this.newestMessage.push(rows.item(i));
+                }
+                this.emitNewestMessageChange();
+            });
+        }, (error)=>{
+            console.log('init <error>', error);
         });
     }
-    getMessage(id, type, page) {
+    resetDisplayMessage() {
+        this.localMessageHasAllGet = false;
+        this.serverMessageHasAllGet = false;
+        this.lastTimeLabel = null;
+        this.lastTimeLabelItem = {};
+        this.displayMessage = [];
+        this.pageNo = 0;
+    }
+    getMessage(type, targetid) {
         if (!this.localMessageHasAllGet) {
             app.db.transaction((tx)=>{
                 tx.executeSql(`SELECT * FROM ${this.HISTORY_MESSAGE_TABLE} WHERE ${type===this.USER_TYPE?'userid':'groupid'}=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?`,
-                [id, type, this.PER_COUNT, this.PER_COUNT*page], (tx, rs)=>{
-                    var {rows} = rs;
-                    var len = rows.length;
-                    for (var i = 0; i < len; i++) {
-                        this.displayMessage.push(rows.item(i));
+                [targetid, type, this.PER_COUNT, this.PER_COUNT*this.pageNo], (tx, rs)=>{
+                    let {rows} = rs;
+                    let len = rows.length;
+                    for (let i = 0; i < len; i++) {
+                        let item = rows.item(i);
+                        let timeLabel = getTimeLabel(item.time);
+                        if (this.lastTimeLabel === timeLabel) {
+                            if (this.lastTimeLabelItem.timeLabel) {
+                                this.lastTimeLabelItem.timeLabel = undefined;
+                            }
+                        } else {
+                            this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
+                        }
+                        this.lastTimeLabel = timeLabel;
+                        this.lastTimeLabelItem = item;
+                        this.displayMessage.push(item);
                     }
                     if (len < this.PER_COUNT) {
                         this.localMessageHasAllGet = true;
-                        this.getMessage(id, type, page);
+                        this.getMessage(targetid, type);
                     } else {
+                        this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
                         this.emitDisplayMessageChange();
                     }
                 });
@@ -112,7 +130,10 @@ class Manager extends EventEmitter {
                 console.log('getUserMessage <error>', error);
             });
         } else {
-            app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type, id, time, cnt:this.PER_COUNT});
+            this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
+            this.serverMessageHasAllGet = true;
+            this.emitDisplayMessageChange();
+            // app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type, targetid, this.lastTimeLabelItem.time, cnt:this.PER_COUNT});
         }
     }
     onGetMessage(obj) {
@@ -122,11 +143,22 @@ class Manager extends EventEmitter {
             var doc = (from == selfid) ?
             {userid:item.to, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime(), send:true} :
             {userid:item.from, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime()};
+            let timeLabel = getTimeLabel(doc.time);
+            if (this.lastTimeLabel === timeLabel) {
+                if (this.lastTimeLabelItem.timeLabel) {
+                    this.lastTimeLabelItem.timeLabel = undefined;
+                }
+            } else {
+                this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
+            }
+            this.lastTimeLabel = timeLabel;
+            this.lastTimeLabelItem = doc;
             this.displayMessage.push(doc);
         });
         if (msg.length<this.PER_COUNT) {
-            this.serverMessageHasAllGet;
+            this.serverMessageHasAllGet = true;
         }
+        this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
         this.emitDisplayMessageChange();
     }
     increaseUserUnreadNotify(userid) {

@@ -11,117 +11,36 @@ var {
     ActivityIndicator,
 } = ReactNative;
 
+var Subscribable = require('Subscribable');
 var InvertibleScrollView = require('react-native-invertible-scroll-view');
 var MessageContainer = require('./MessageContainer.js');
-var getTimeLabel = require('./getTimeLabel.js');
-
-/*loading more status change graph
-*
-* STATUS_NONE->[STATUS_LOADING]
-* STATUS_LOADING->[STATUS_NONE, STATUS_NO_DATA, STATUS_ALL_LOADED, STATUS_LOAD_ERROR]
-* STATUS_ALL_LOADED->[STATUS_NONE]
-*/
-const STATUS_NONE = 0,
-STATUS_LOADING = 1,
-STATUS_NO_DATA = 2,
-STATUS_ALL_LOADED = 3,
-STATUS_LOAD_ERROR = 4;
 
 module.exports = React.createClass({
-    getDefaultProps() {
-        return {
-            autoLoad: true,
-            pageNo: 0,
-            loadStatus: STATUS_NONE,
-            perPageCount: 10,
-            url: app.route.ROUTE_GET_MESSAGE_LIST,
-        };
-    },
+    mixins: [Subscribable.Mixin],
     getInitialState() {
         this.ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-        this.list = this.props.list||[];
-        this.pageNo = this.props.pageNo;
         return {
-            dataSource: this.ds.cloneWithRows(this.list),
-            loadStatus: this.props.loadStatus,
+            dataSource: this.ds.cloneWithRows(app.messageMgr.displayMessage),
+            loading: false,
         };
+    },
+    componentWillMount() {
+        app.messageMgr.addDisplayMessageChangeListener(this);
+    },
+    onDisplayMessageChangeListener() {
+        this.setState({loading: false});
+        this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.displayMessage)});
     },
     componentDidMount() {
-        if (this.props.autoLoad) {
-            this.getList();
-        }
-    },
-    updateList(callback) {
-        this.list = callback(this.list);
-        this.setState({
-            dataSource: this.ds.cloneWithRows(this.list),
-        });
-    },
-    getList(){
-        var param = {
-            ...this.props.listParam,
-            pageNo: this.pageNo,
-        };
-        this.setState({loadStatus: STATUS_LOADING});
-        POST(this.props.url, param, this.getListSuccess, this.getListFailed);
-    },
-    getListSuccess(data) {
-        const {perPageCount} = this.props;
-        if (data.success) {
-            var list = data.list;
-            var loadStatus = (!list.length && this.pageNo===0) ? STATUS_NO_DATA : list.length < perPageCount ? STATUS_ALL_LOADED : STATUS_NONE;
-            this.list = this.list.concat(this.getListWithTimeLabel(list));
-            this.setState({
-                dataSource: this.ds.cloneWithRows(this.list),
-                loadStatus: loadStatus
-            });
-        } else {
-            this.getListFailed();
-        }
-    },
-    getListFailed() {
-        this.pageNo--;
-        this.setState({loadStatus: STATUS_LOAD_ERROR});
+        const {type, targetid} = this.props;
+        this.setState({loading: true});
+        app.messageMgr.getMessage(type, targetid);
     },
     onEndReached() {
-        if (this.state.loadStatus !== STATUS_NONE) {
-            return;
+        const {messageMgr} = app;
+        if (!messageMgr.serverMessageHasAllGet) {
+            messageMgr.getMessage();
         }
-        this.pageNo++;
-        this.getList();
-    },
-    getListWithTimeLabel(list) {
-        let lastItem = _.last(this.list)||{};
-        let lastTimeLabel = lastItem.timeLabel;
-        list.forEach((item)=>{
-            let timeLabel = getTimeLabel(item.time);
-            if (lastTimeLabel === timeLabel) {
-                if (lastItem.timeLabel) {
-                    lastItem.timeLabel = undefined;
-                }
-            } else {
-                lastItem.timeLabel = lastTimeLabel;
-            }
-            lastItem = item;
-            lastTimeLabel = timeLabel;
-        });
-        lastItem = _.last(list);
-        if (lastItem) {
-            lastItem.timeLabel = lastTimeLabel;
-        }
-        return list;
-    },
-    sendMessage(obj) {
-        this.list.unshift({
-            avatar: app.img.login_weixin_button,
-            text: obj.text,
-            name: '阿三',
-            time: '2016-09-04 12:11:00',
-            send: true,
-        });
-        this.setState({
-            dataSource: this.ds.cloneWithRows(this.list),
-        });
     },
     onTouchStart() {
         this._touchStarted = true;
@@ -139,23 +58,18 @@ module.exports = React.createClass({
         this.scrollRef.scrollTo(options);
     },
     renderFooter() {
-        const {loadStatus} = this.state;
-        if (loadStatus===STATUS_NONE || loadStatus===STATUS_NO_DATA || loadStatus===STATUS_ALL_LOADED || (loadStatus===STATUS_LOAD_ERROR && this.pageNo===0)) {
-            return null;
-        }
+        const {loading} = this.state;
         return (
+            loading ?
             <View style={styles.footer}>
-            {
-                loadStatus === STATUS_LOADING ?
                 <ActivityIndicator
                 color='gray'
                 size='small'
                 style={[styles.activityIndicator, this.props.activityIndicatorStyle]}
                 />
-                :
-                null
-            }
             </View>
+            :
+            null
         )
     },
     renderScrollComponent(props) {
@@ -172,9 +86,9 @@ module.exports = React.createClass({
         );
     },
     renderRow(obj) {
-        const {avatar, name, text, time, send, timeLabel} = obj;
-        const wordsList = this.props.parseWordsListFromText(obj.text);
-        const source = _.isString(avatar) ? {uri: avatar} : avatar;
+        const {type, userid, touserid, groupid, msg, msgtype, send, timeLabel} = obj;
+        const wordsList = this.props.parseWordsListFromText(msg);
+        const source = app.img.login_qq_button;
         return (
             <View>
                 {
