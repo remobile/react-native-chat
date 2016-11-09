@@ -25,9 +25,9 @@ class Manager extends EventEmitter {
         this.PER_COUNT = 10;
 
         this.newestMessage = [];
+        this.displayMessage = [];
         this.displayMessageInfo = {};
         this.get();
-        this.resetDisplayMessage();
     }
     get() {
         return new Promise(async(resolve, reject)=>{
@@ -97,7 +97,12 @@ class Manager extends EventEmitter {
         this.displayMessage = [];
         this.pageNo = 0;
     }
-    getMessage(type, targetid) {
+    getMessage(query) {
+        if (query && !_.isEqual(this.lastMessageQuery, query)) {
+            this.resetDisplayMessage();
+            this.lastMessageQuery = query;
+        }
+        const {type, targetid} = this.lastMessageQuery;
         if (!this.localMessageHasAllGet) {
             app.db.transaction((tx)=>{
                 tx.executeSql(`SELECT * FROM ${this.HISTORY_MESSAGE_TABLE} WHERE ${type===this.USER_TYPE?'userid':'groupid'}=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?`,
@@ -120,8 +125,9 @@ class Manager extends EventEmitter {
                     }
                     if (len < this.PER_COUNT) {
                         this.localMessageHasAllGet = true;
-                        this.getMessage(targetid, type);
+                        this.getMessage();
                     } else {
+                        this.pageNo++;
                         this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
                         this.emitDisplayMessageChange();
                     }

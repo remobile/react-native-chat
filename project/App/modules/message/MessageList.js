@@ -34,7 +34,7 @@ module.exports = React.createClass({
     componentDidMount() {
         const {type, targetid} = this.props;
         this.setState({loading: true});
-        app.messageMgr.getMessage(type, targetid);
+        app.messageMgr.getMessage({type, targetid});
     },
     onEndReached() {
         const {messageMgr} = app;
