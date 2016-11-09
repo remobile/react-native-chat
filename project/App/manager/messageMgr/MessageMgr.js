@@ -249,7 +249,17 @@ class Manager extends EventEmitter {
             });
         }
         this.emitNewestMessageChange();
-        this.displayMessage.unshift({type, userid, groupid, time, msg, msgtype, send, touserid});
+        let item = {type, userid, groupid, time, msg, msgtype, send, touserid};
+        let timeLabel = getTimeLabel(item.time);
+        let firstItem = this.displayMessage[0];
+        if (!firstItem) {
+            this.lastTimeLabel = timeLabel;
+            this.lastTimeLabelItem = item;
+            item.timeLabel = this.lastTimeLabel;
+        } else if (getTimeLabel(firstItem.time) !== timeLabel) {
+            item.timeLabel = timeLabel;
+        }
+        this.displayMessage.unshift(item);
         this.emitDisplayMessageChange();
     }
     sendUserMessage(users, msg, msgtype) {
@@ -277,6 +287,9 @@ class Manager extends EventEmitter {
             console.log("send to "+obj.to+" ["+obj.msgid+"]", obj.time, "server success");
         }
     }
+    onUserMessageReceived(obj) {
+        console.log(' ['+obj.msgid+']:',  obj.to, 'received');
+    }
     addMessageNotification(userid, groupid, message) {
         var username;
         if (userid !== null) {
@@ -298,9 +311,6 @@ class Manager extends EventEmitter {
             this.showNewestMessage(this.GROUP_TYPE, obj.from, obj.groupid, obj.time, obj.msg, obj.msgtype, false, obj.touserid);
             console.log(' group:'+obj.groupid, ' ['+obj.from+']',' ['+obj.msgid+']:', obj.msg, obj.msgtype, obj.time, obj.touserid);
         }
-    }
-    onUserMessageReceived(obj) {
-        console.log(' ['+obj.msgid+']:',  obj.to, 'received');
     }
     noticeNewMessage(obj) {
         // app.sound.playSound(app.resource.aud_new_message);

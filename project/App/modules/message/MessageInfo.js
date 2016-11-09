@@ -421,8 +421,14 @@ module.exports = React.createClass({
             Toast('不能发送空消息');
             return;
         }
+        const {messageMgr} = app;
+        const {type, targetid} = this.props;
+        if (type === messageMgr.GROUP_TYPE) {
+            messageMgr.sendGroupMessage(targetid, text, messageMgr.TEXT_TYPE, this.sendGroupUserId);
+        } else {
+            messageMgr.sendUserMessage(targetid, text, messageMgr.TEXT_TYPE);
+        }
         this.clear();
-        this.messageList.sendMessage({type:'text', text});
     },
     showMorePanel() {
         let {keyboardShowType} = this.state;
