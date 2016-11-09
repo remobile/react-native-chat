@@ -91,35 +91,43 @@ class Manager extends EventEmitter {
             this.emitNewestMessageChange();
         });
     }
-    getUserMessage(userid, page) {
-        app.db.transaction((tx)=>{
-            tx.executeSql(`SELECT * FROM ${this.HISTORY_MESSAGE_TABLE} WHERE userid=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?`,
-            [userid, this.USER_TYPE, this.PER_COUNT, this.PER_COUNT*page], (tx, rs)=>{
-                var {rows} = rs, docs = [];
-                for (var i = 0, len = rows.length; i < len; i++){
-                    docs.push(rows.item(len-i-1));
-                }
-                this.newestMessage = docs;
-                this.emitDisplayMessageChange();
+    getMessage(id, type, page) {
+        if (!this.localMessageHasAllGet) {
+            app.db.transaction((tx)=>{
+                tx.executeSql(`SELECT * FROM ${this.HISTORY_MESSAGE_TABLE} WHERE ${type===this.USER_TYPE?'userid':'groupid'}=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?`,
+                [id, type, this.PER_COUNT, this.PER_COUNT*page], (tx, rs)=>{
+                    var {rows} = rs;
+                    var len = rows.length;
+                    for (var i = 0; i < len; i++) {
+                        this.displayMessage.push(rows.item(i));
+                    }
+                    if (len < this.PER_COUNT) {
+                        this.localMessageHasAllGet = true;
+                        this.getMessage(id, type, page);
+                    } else {
+                        this.emitDisplayMessageChange();
+                    }
+                });
+            }, (error)=>{
+                console.log('getUserMessage <error>', error);
             });
-        }, (error)=>{
-            console.log('getUserMessage <error>', error);
-        });
+        } else {
+            app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type, id, time, cnt:this.PER_COUNT});
+        }
     }
-    getGroupMessage(groupid, page) {
-        app.db.transaction((tx)=>{
-            tx.executeSql(`SELECT * FROM ${this.HISTORY_MESSAGE_TABLE} WHERE groupid=? AND type=? ORDER BY time DESC LIMIT ? OFFSET ?`,
-            [groupid, this.GROUP_TYPE, this.PER_COUNT, this.PER_COUNT*page], (tx, rs)=>{
-                var {rows} = rs, docs = [];
-                for (var i = 0, len = rows.length; i < len; i++){
-                    docs.push(rows.item(len-i-1));
-                }
-                this.newestMessage = docs;
-                this.emitDisplayMessageChange();
-            });
-        }, (error)=>{
-            console.log('getGroupMessage <error>', error);
+    onGetMessage(obj) {
+        var msg = obj.msg;
+        var selfid = app.loginMgr.userid;
+        msg.forEach((item)=>{
+            var doc = (from == selfid) ?
+            {userid:item.to, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime(), send:true} :
+            {userid:item.from, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime()};
+            this.displayMessage.push(doc);
         });
+        if (msg.length<this.PER_COUNT) {
+            this.serverMessageHasAllGet;
+        }
+        this.emitDisplayMessageChange();
     }
     increaseUserUnreadNotify(userid) {
         var obj = this.data.unreadUsersMessage;
@@ -270,44 +278,21 @@ class Manager extends EventEmitter {
         // app.sound.playSound(app.resource.aud_new_message);
     }
     showOfflineMessage(obj) {
-        if (!app.uiMessage.hasUpdateLogMessage) {
-            setTimeout(()=>{this.showOfflineMessage(obj)}, 200);
-        } else {
-            var len = obj.length;
-            var allUsers = app.userMgr.users;
-            if (len) {
-                this.noticeNewMessage();
-            }
-            for (var i = 0; i < len; i++) {
-                var item = obj[i];
-                if (item.type == this.GROUP_TYPE) {
-                    console.log(' [' + item.groupid + ']', ' [' + item.from + '][' + item.time + ']:', item.msg);
-                    this.showNewestMessage(this.GROUP_TYPE, item.from, item.groupid, new Date(item.time).getTime(), item.msg, item.msgtype, false, item.touserid);
-                } else {
-                    console.log(' [' + item.from + '][' + new Date(item.time).getTime() + ']:', item.msg);
-                    this.showNewestMessage(this.USER_TYPE, item.from, allUsers[item.from].username, new Date(item.time).getTime(), item.msg, item.msgtype);
-                }
+        var len = obj.length;
+        var allUsers = app.userMgr.users;
+        if (len) {
+            this.noticeNewMessage();
+        }
+        for (var i = 0; i < len; i++) {
+            var item = obj[i];
+            if (item.type == this.GROUP_TYPE) {
+                console.log(' [' + item.groupid + ']', ' [' + item.from + '][' + item.time + ']:', item.msg);
+                this.showNewestMessage(this.GROUP_TYPE, item.from, item.groupid, new Date(item.time).getTime(), item.msg, item.msgtype, false, item.touserid);
+            } else {
+                console.log(' [' + item.from + '][' + new Date(item.time).getTime() + ']:', item.msg);
+                this.showNewestMessage(this.USER_TYPE, item.from, allUsers[item.from].username, new Date(item.time).getTime(), item.msg, item.msgtype);
             }
         }
-    }
-    getUserMessageFromServer(counter, time) {
-        app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type:this.USER_TYPE, counter:counter, time:time, cnt:this.PER_COUNT});
-    }
-    getGroupMessageFromServer(counter, time) {
-        app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type:this.GROUP_TYPE, counter:counter, time:time, cnt:this.PER_COUNT});
-    }
-    onGetMessage(obj) {
-        var msg = obj.msg;
-        var selfid = app.loginMgr.userid;
-        var arr = _.map(msg, (item)=>{
-            if (from == selfid) {
-                return {userid:item.to, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime(), send:item.msgid};
-            } else {
-                return {userid:item.from, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime()};
-            }
-        });
-        this.displayMessage = arr.reverse().concat(this.displayMessage);
-        this.emitDisplayMessageChange();
     }
 }
 

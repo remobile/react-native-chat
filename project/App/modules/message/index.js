@@ -11,9 +11,9 @@ var {
 } = ReactNative;
 
 var Subscribable = require('Subscribable');
-const images = require('../text/expressions').images;
-var getTimeLabel = require('../text/getTimeLabel.js');
-var MessageInfo = require('../text/index.js');
+const images = require('./expressions').images;
+var getTimeLabel = require('./getTimeLabel.js');
+var MessageInfo = require('./MessageInfo.js');
 
 module.exports = React.createClass({
     mixins: [Subscribable.Mixin],
@@ -147,6 +147,7 @@ var styles = StyleSheet.create({
     },
     time: {
         fontSize: 13,
+        color: 'gray',
         position: 'absolute',
         right: 10,
         top: 0,

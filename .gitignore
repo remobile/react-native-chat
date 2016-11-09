@@ -16,7 +16,7 @@
 /resource
 /server/public/download
 *.idea
-1.*
+1.txt
 /react
 /**/public/
 /image
