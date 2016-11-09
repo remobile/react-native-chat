@@ -26,7 +26,6 @@ class Manager extends EventEmitter {
 
         this.newestMessage = [];
         this.displayMessage = [];
-        this.displayMessageInfo = {};
         this.get();
     }
     get() {
@@ -215,10 +214,7 @@ class Manager extends EventEmitter {
         groupid = groupid||'';
 
         if (type===this.GROUP_TYPE) {
-            display = this.displayMessageInfo.target===groupid;
-            // if (!(app.state.currentView==="messageInfo" && display)) {
-            //     this.increaseGroupUnreadNotify(groupid, touserid);
-            // }
+            //this.increaseGroupUnreadNotify(groupid, touserid);
             this.newestMessage = _.reject(this.newestMessage, (item)=>item.groupid==groupid&&item.type==type);
             this.newestMessage.unshift({type, userid, groupid, time, msg, msgtype, touserid});
             app.db.transaction((tx)=>{
@@ -235,10 +231,7 @@ class Manager extends EventEmitter {
                 console.log('showNewestMessage <error>', error);
             });
         } else {
-            display = this.displayMessageInfo.target===userid;
-            // if (!(app.state.currentView==="messageInfo" && display)) {
-            //     this.increaseUserUnreadNotify(userid);
-            // }
+            // this.increaseUserUnreadNotify(userid);
             this.newestMessage = _.reject(this.newestMessage, (item)=>item.userid==userid&&item.type==type);
             this.newestMessage.unshift({type, userid, groupid, time, msg, msgtype, touserid});
             app.db.transaction((tx)=>{
@@ -256,11 +249,8 @@ class Manager extends EventEmitter {
             });
         }
         this.emitNewestMessageChange();
-        var display_message = {type, userid, groupid, time, msg, msgtype, send, touserid};
-        if (display) {
-            this.displayMessage.push(display_message);
-            this.emitDisplayMessageChange();
-        }
+        this.displayMessage.unshift({type, userid, groupid, time, msg, msgtype, send, touserid});
+        this.emitDisplayMessageChange();
     }
     sendUserMessage(users, msg, msgtype) {
         var {msgid} = this.data;
