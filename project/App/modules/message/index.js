@@ -33,6 +33,13 @@ module.exports = React.createClass({
     onNewestMessageChangeListener() {
         this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.newestMessage)});
     },
+    componentDidMount() {
+        app.utils.until(
+            ()=>app.userMgr.init&&app.groupMgr.init,
+            (cb)=>setTimeout(cb, 100),
+            ()=>app.messageMgr.getNewestMessage(app.loginMgr.userid)
+        );
+    },
     showMessageInfo: function(type, targetid) {
         app.navigator.push({
             component: MessageInfo,

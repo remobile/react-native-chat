@@ -69,7 +69,7 @@ class Manager extends EventEmitter {
         }
         this.set();
     }
-    getNewestMessage(userid) {
+    initMessageDatabase(userid) {
         this.NEWEST_MESSAGE_TABLE = 'NEWEST_MESSAGE_TABLE_'+userid;
         this.HISTORY_MESSAGE_TABLE = 'HISTORY_MESSAGE_TABLE_'+userid;
         app.db.transaction((tx)=>{
@@ -77,15 +77,22 @@ class Manager extends EventEmitter {
             time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`);
             tx.executeSql(`CREATE TABLE IF NOT EXISTS ${this.HISTORY_MESSAGE_TABLE} (type integer, userid varchar(11), groupid varchar(40),
             time integer, msg varchar(1024), msgtype integer, send integer default 0, touserid varchar(11))`);
+        }, (error)=>{
+            console.log('init <error>', error);
+        });
+    }
+    getNewestMessage() {
+        app.db.transaction((tx)=>{
             tx.executeSql(`SELECT * FROM ${this.NEWEST_MESSAGE_TABLE} ORDER BY time DESC`, [], (tx, rs)=>{
                 var {rows} = rs;
                 for (var i = 0, len = rows.length; i < len; i++){
                     this.newestMessage.push(rows.item(i));
                 }
                 this.emitNewestMessageChange();
+                this.hasLoadNewestMessage = true;
             });
         }, (error)=>{
-            console.log('init <error>', error);
+            console.log('getNewestMessage <error>', error);
         });
     }
     resetDisplayMessage() {
@@ -160,7 +167,7 @@ class Manager extends EventEmitter {
             this.lastTimeLabelItem = doc;
             this.displayMessage.push(doc);
         });
-        if (msg.length<this.PER_COUNT) {
+        if (msg.length < this.PER_COUNT) {
             this.serverMessageHasAllGet = true;
         }
         this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
@@ -301,35 +308,37 @@ class Manager extends EventEmitter {
         // navigator.utils.addNotification(app.constants.MESSAGE_NOTIFY_ID, username, message);
     }
     showUserMessage(obj) {
+        let {type, from, groupid, time, msg, msgtype, touserid} = obj;
         // app.sound.playSound(app.resource.aud_message_tip);
-        if (obj.type == this.USER_TYPE) {
-            this.addMessageNotification(obj.from, null, obj.msg);
-            this.showNewestMessage(this.USER_TYPE, obj.from, null, obj.time, obj.msg, obj.msgtype);
-            console.log('['+obj.from+']','['+obj.msgid+']:', obj.msg, obj.msgtype, obj.time);
+        if (type === this.USER_TYPE) {
+            this.addMessageNotification(from, null, msg);
+            this.showNewestMessage(this.USER_TYPE, from, null, time, msg, msgtype);
         } else {
-            this.addMessageNotification(null, obj.groupid, obj.msg);
-            this.showNewestMessage(this.GROUP_TYPE, obj.from, obj.groupid, obj.time, obj.msg, obj.msgtype, false, obj.touserid);
-            console.log(' group:'+obj.groupid, ' ['+obj.from+']',' ['+obj.msgid+']:', obj.msg, obj.msgtype, obj.time, obj.touserid);
+            this.addMessageNotification(null, groupid, msg);
+            this.showNewestMessage(this.GROUP_TYPE, from, groupid, time, msg, msgtype, false, touserid);
         }
     }
     noticeNewMessage(obj) {
         // app.sound.playSound(app.resource.aud_new_message);
     }
     showOfflineMessage(obj) {
-        var len = obj.length;
-        var allUsers = app.userMgr.users;
-        if (len) {
-            this.noticeNewMessage();
-        }
-        for (var i = 0; i < len; i++) {
-            var item = obj[i];
-            if (item.type == this.GROUP_TYPE) {
-                console.log(' [' + item.groupid + ']', ' [' + item.from + '][' + item.time + ']:', item.msg);
-                this.showNewestMessage(this.GROUP_TYPE, item.from, item.groupid, new Date(item.time).getTime(), item.msg, item.msgtype, false, item.touserid);
-            } else {
-                console.log(' [' + item.from + '][' + new Date(item.time).getTime() + ']:', item.msg);
-                this.showNewestMessage(this.USER_TYPE, item.from, allUsers[item.from].username, new Date(item.time).getTime(), item.msg, item.msgtype);
-            }
+        if (obj.length) {
+            app.utils.until(
+                ()=>this.hasLoadNewestMessage,
+                (cb)=>setTimeout(cb, 100),
+                ()=>{
+                    let {users} = app.userMgr;
+                    this.noticeNewMessage();
+                    obj.forEach(item)=>{
+                        let {type, from, groupid, time, msg, msgtype, touserid} = item;
+                        if (type === this.GROUP_TYPE) {
+                            this.showNewestMessage(this.USER_TYPE, from, users[from].username, time, msg, msgtype);
+                        } else {
+                            this.showNewestMessage(this.GROUP_TYPE, from, groupid, time, msg, msgtype, false, touserid);
+                        }
+                    })
+                }
+            );
         }
     }
 }

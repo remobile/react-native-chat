@@ -82,5 +82,3 @@ module.exports = (function() {
 
     return new MessageMgr();
 })();
-
-
