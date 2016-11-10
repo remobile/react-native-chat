@@ -103,6 +103,18 @@ class Manager extends EventEmitter {
         this.displayMessage = [];
         this.pageNo = 0;
     }
+    updateTimeLabel(obj) {
+        let timeLabel = getTimeLabel(obj.time);
+        if (this.lastTimeLabel === timeLabel) {
+            if (this.lastTimeLabelItem.timeLabel) {
+                this.lastTimeLabelItem.timeLabel = undefined;
+            }
+        } else {
+            this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
+        }
+        this.lastTimeLabel = timeLabel;
+        this.lastTimeLabelItem = obj;
+    }
     getMessage(query) {
         if (query && !_.isEqual(this.lastMessageQuery, query)) {
             this.resetDisplayMessage();
@@ -117,16 +129,7 @@ class Manager extends EventEmitter {
                     let len = rows.length;
                     for (let i = 0; i < len; i++) {
                         let item = rows.item(i);
-                        let timeLabel = getTimeLabel(item.time);
-                        if (this.lastTimeLabel === timeLabel) {
-                            if (this.lastTimeLabelItem.timeLabel) {
-                                this.lastTimeLabelItem.timeLabel = undefined;
-                            }
-                        } else {
-                            this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
-                        }
-                        this.lastTimeLabel = timeLabel;
-                        this.lastTimeLabelItem = item;
+                        this.updateTimeLabel(item);
                         this.displayMessage.push(item);
                     }
                     if (len < this.PER_COUNT) {
@@ -155,16 +158,7 @@ class Manager extends EventEmitter {
             var doc = (from == selfid) ?
             {userid:item.to, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime(), send:true} :
             {userid:item.from, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime()};
-            let timeLabel = getTimeLabel(doc.time);
-            if (this.lastTimeLabel === timeLabel) {
-                if (this.lastTimeLabelItem.timeLabel) {
-                    this.lastTimeLabelItem.timeLabel = undefined;
-                }
-            } else {
-                this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
-            }
-            this.lastTimeLabel = timeLabel;
-            this.lastTimeLabelItem = doc;
+            this.updateTimeLabel(doc);
             this.displayMessage.push(doc);
         });
         if (msg.length < this.PER_COUNT) {
@@ -331,6 +325,7 @@ class Manager extends EventEmitter {
                     this.noticeNewMessage();
                     obj.forEach(item)=>{
                         let {type, from, groupid, time, msg, msgtype, touserid} = item;
+                        time = new Date(time).getTime();
                         if (type === this.GROUP_TYPE) {
                             this.showNewestMessage(this.USER_TYPE, from, users[from].username, time, msg, msgtype);
                         } else {
