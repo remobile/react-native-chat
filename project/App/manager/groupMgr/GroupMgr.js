@@ -1,52 +1,50 @@
-var _  = require('underscore');
-var EventEmitter = require('events').EventEmitter;
-var assign = require('object-assign');
+'use strict';
+var ReactNative = require('react-native');
+var {
+    AsyncStorage,
+} = ReactNative;
+var EventEmitter = require('EventEmitter');
+var fisrtPinyin = require('../../utils/pinyin');
 
-module.exports = (function() {
-    "use strict";
-
-    function GroupMgr() {
-        assign(this, EventEmitter.prototype);
+class Manager extends EventEmitter {
+    constructor() {
+        super();
         this.reset();
     }
-
-    GroupMgr.prototype.emitEvent = function(data) {
+    emitGroupEvent(data) {
         this.emit("GROUP_EVENT", data);
-    };
-    GroupMgr.prototype.addEventListener = function(callback) {
-        this.on("GROUP_EVENT", callback);
-    };
-    GroupMgr.prototype.removeEventListener = function(callback) {
-        this.removeListener("GROUP_EVENT", callback);
-    };
-    GroupMgr.prototype.reset = function() {
+    }
+    addGroupEventListener(target) {
+        target.addListenerOn(this, "GROUP_EVENT", target.onGroupEventListener);
+    }
+    reset() {
         this.list = {};
         this.alphaList = {};
         this.init = false;
-    };
-    GroupMgr.prototype.add = function(obj, noupdate) {
-        var id = obj.id,
+    }
+    add(obj, noupdate) {
+        let {id} = obj,
         list = this.list;
         if(!list.hasOwnProperty(id)) {
             list[id] = obj;
             this.addAlphaList(id, obj.name);
         }
-    };
-    GroupMgr.prototype.addAlphaList = function(id, name) {
-        var alpha = $.fisrtPinyin(name);
+    }
+    addAlphaList(id, name) {
+        var alpha = fisrtPinyin(name);
         var alphaList = this.alphaList;
         alphaList[alpha] = alphaList[alpha]||[];
         alphaList[alpha].push(id);
-    };
-    GroupMgr.prototype.remove = function(obj) {
-        if(this.list.hasOwnProperty(obj.id)) {
-            var groupname = this.list[obj.id].name;
-            delete this.list[obj.id];
-            this.removeAlphaList(obj.id, groupname);
+    }
+    remove(id) {
+        if(this.list.hasOwnProperty(id)) {
+            var groupname = this.list[id].name;
+            delete this.list[id];
+            this.removeAlphaList(id, groupname);
         }
-    };
-    GroupMgr.prototype.removeAlphaList = function(id, name) {
-        var alpha = $.fisrtPinyin(name);
+    }
+    removeAlphaList(id, name) {
+        var alpha = fisrtPinyin(name);
         var alphaList = this.alphaList[alpha];
         if (alphaList) {
             alphaList = _.without(alphaList, id);
@@ -56,188 +54,180 @@ module.exports = (function() {
                 this.alphaList[alpha] = alphaList;
             }
         }
-    };
-    GroupMgr.prototype.updateGroup = function(obj) {
-        this.list[obj.id].members = obj.members;
-        if (obj.type != null) {
-            this.list[obj.id].type = obj.type;
+    }
+    updateGroup(obj) {
+        let {id, name, type, members} = obj;
+        this.list[id].members = members;
+        if (type != null) {
+            this.list[id].type = type;
         }
-        if (obj.name != null) {
-            this.list[obj.id].name = obj.name;
+        if (name != null) {
+            this.list[id].name = name;
         }
-    };
-    GroupMgr.prototype.addMembers = function(obj) {
+    }
+    addMembers(obj) {
         var list = this.list[obj.id].members;
         list.push(obj.userid);
-    };
-    GroupMgr.prototype.removeMembers = function(obj) {
+    }
+    removeMembers(obj) {
         var list = this.list[obj.id].members;
         this.list[obj.id].members = _.without(list, obj.userid);
-    };
-    GroupMgr.prototype.addList = function(list) {
-        for (var i in list) {
-            this.add(list[i]);
+    }
+    addList(list) {
+        for (var item of list) {
+            this.add(item);
         }
         this.init = true;
-    };
-    GroupMgr.prototype.showGroupMessage = function(obj) {
-        console.log('[',  obj.group,  obj.from, ']'+obj.msg);
-    };
-    GroupMgr.prototype.getGroupList = function(name, creators, members) {
+    }
+    getGroupList(name, creators, members) {
         app.showWait();
-        var obj = {};
-        if (name) {
-            obj.name = name;
-        }
-        if (creators&&creators.length) {
-            obj.creators = creators;
-        }
-        if (members&&members.length) {
-            obj.members = members;
-        }
-        app.emit('GROUP_LIST_RQ', obj);
-    };
-    GroupMgr.prototype.onGetGroupList = function(groups) {
-        this.emitEvent({type:"ON_GET_GROUP_LIST", groups: groups});
-    };
-    GroupMgr.prototype.getGroupInfo = function(groupid) {
+        app.emit('GROUP_LIST_RQ', {name, creators, members});
+    }
+    onGetGroupList(groups) {
+        this.emitGroupEvent({type:"ON_GET_GROUP_LIST", groups: groups});
+    }
+    getGroupInfo(groupid) {
         app.emit('GROUP_INFO_RQ', {id: groupid});
-    };
-    GroupMgr.prototype.onGetGroupInfo = function(obj) {
+    }
+    onGetGroupInfo(obj) {
         if (obj) {
             console.log(obj);
         } else {
             console.log("there is no group");
         }
-    };
-    GroupMgr.prototype.createGroup = function(name, members, type) {
-        type = type&&1||0;
-        app.emit('GROUP_CREATE_RQ', {name:name, members:members, type:type});
-    };
-    GroupMgr.prototype.onCreateGroup = function(obj) {
-        console.log(obj);
-        if (obj.error) {
-            console.log("create "+obj.name+" failed: for "+obj.error);
+    }
+    createGroup(name, members, type) {
+        app.emit('GROUP_CREATE_RQ', {name, members, type});
+    }
+    onCreateGroup(obj) {
+        let {error, id, name, type, members} = obj;
+        if (error) {
+            console.log("create "+name+" failed: for "+error);
         } else {
-            this.add({id:obj.id, name:obj.name, creator:app.loginMgr.userid, type:obj.type, members:obj.members});
-            console.log("create "+obj.name+" success");
+            this.add({id, name, creator:app.loginMgr.userid, type, members});
+            console.log("create "+name+" success");
         }
-        this.emitEvent({type:"ON_CREATE_GROUP", error: obj.error});
-    };
-    GroupMgr.prototype.modifyGroup = function(id, name, members, type) {
-        type = type&&1||0;
-        app.emit('GROUP_MODIFY_RQ', {id:id, name:name, members:members, type:type});
-    };
-    GroupMgr.prototype.onModifyGroup = function(obj) {
-        if (obj.error) {
-            console.log("modify "+obj.id+" failed: for "+obj.error);
+        this.emitGroupEvent({type:"ON_CREATE_GROUP", error});
+    }
+    modifyGroup(id, name, members, type) {
+        app.emit('GROUP_MODIFY_RQ', {id, name, members, type});
+    }
+    onModifyGroup(obj) {
+        let {error, id, name, type, members} = obj;
+        if (error) {
+            console.log("modify "+id+" failed: for "+error);
         } else {
-            this.list[obj.id].members = obj.members;
-            this.list[obj.id].type = obj.type;
-            this.list[obj.id].name = obj.name;
-            console.log("modify "+obj.id+" success");
+            Object.assign(this.list[id], {members, type, name});
+            console.log("modify "+id+" success");
         }
-        this.emitEvent({type:"ON_MODIFY_GROUP", error: obj.error});
-    };
-    GroupMgr.prototype.removeGroup = function(id) {
+        this.emitGroupEvent({type:"ON_MODIFY_GROUP", error});
+    }
+    removeGroup(id) {
         app.emit('GROUP_DELETE_RQ', {id:id});
-    };
-    GroupMgr.prototype.onRemoveGroup = function(obj) {
-        if (obj.error) {
-            console.log("remove "+obj.id+" failed: for "+obj.error);
+    }
+    onRemoveGroup(obj) {
+        let {error, id} = obj;
+        if (error) {
+            console.log("remove "+id+" failed: for "+error);
         } else {
-            this.remove(obj);
-            console.log("remove "+obj.id+" success");
+            this.remove(id);
+            console.log("remove "+id+" success");
         }
-        this.emitEvent({type:"ON_REMOVE_GROUP", error: obj.error});
-    };
-    GroupMgr.prototype.onRemoveGroupNotify = function(obj) {
-        this.remove(obj);
-        console.log( obj.id, 'is been delete');
-        this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});
-    };
-    GroupMgr.prototype.joinGroup = function(id) {
-        app.emit('GROUP_JOIN_RQ', {id:id});
-    };
-    GroupMgr.prototype.onJoinGroup = function(obj) {
-        if (obj.error) {
-            console.log("join "+obj.id+" failed: for "+obj.error);
+        this.emitGroupEvent({type:"ON_REMOVE_GROUP", error});
+    }
+    onRemoveGroupNotify(obj) {
+        let {id} = obj;
+        this.remove(id);
+        console.log(id, 'is been delete');
+        this.emitGroupEvent({type:"ON_GROUP_LIST_CHANGE"});
+    }
+    joinGroup(id) {
+        app.emit('GROUP_JOIN_RQ', {id});
+    }
+    onJoinGroup(obj) {
+        let {error, id, name, creator, type, members} = obj;
+        if (error) {
+            console.log("join "+id+" failed: for "+error);
         } else {
-            this.add({id:obj.id, name:obj.name, creator:obj.creator, type:obj.type, members:obj.members});
-            console.log("join "+obj.id+" success");
+            this.add({id, name, creator, type, members});
+            console.log("join "+id+" success");
         }
-        this.emitEvent({type:"ON_JOIN_GROUP", error: obj.error});
-    };
-    GroupMgr.prototype.onJoinGroupNotify = function(obj) {
-        this.addMembers({id:obj.id, userid:obj.userid});
-        console.log( obj.userid, 'join group',  obj.id);
-        this.emitEvent({type:"ON_UPDATE_GROUP", id:obj.id});
-    };
-    GroupMgr.prototype.leaveGroup = function(id) {
-        app.emit('GROUP_LEAVE_RQ', {id:id});
-    };
-    GroupMgr.prototype.onLeaveGroup = function(obj) {
-        this.remove(obj);
-        console.log("leave "+obj.id+" success");
-        this.emitEvent({type:"ON_LEAVE_GROUP"});
-    };
-    GroupMgr.prototype.onLeaveGroupNotify = function(obj) {
-        this.removeMembers({id:obj.id, userid:obj.userid});
-        console.log( obj.userid, 'lest group',  obj.id);
-        this.emitEvent({type:"ON_UPDATE_GROUP", id:obj.id});
-    };
-    GroupMgr.prototype.pullInGroup = function(id, members) {
-        app.emit('GROUP_PULL_IN_RQ', {id:id, members:members});
-    };
-    GroupMgr.prototype.onPullInGroup = function(obj) {
-        if (obj.error) {
-            console.log("pull "+obj.id+" failed: for "+obj.error);
+        this.emitGroupEvent({type:"ON_JOIN_GROUP", error});
+    }
+    onJoinGroupNotify(obj) {
+        let {id, userid} = obj;
+        this.addMembers({id, userid});
+        console.log(userid, 'join group', id);
+        this.emitGroupEvent({type:"ON_UPDATE_GROUP", id});
+    }
+    leaveGroup(id) {
+        app.emit('GROUP_LEAVE_RQ', {id});
+    }
+    onLeaveGroup(obj) {
+        let {id} = obj;
+        this.remove(id);
+        console.log("leave "+id+" success");
+        this.emitGroupEvent({type:"ON_LEAVE_GROUP"});
+    }
+    onLeaveGroupNotify(obj) {
+        let {id, userid} = obj;
+        this.removeMembers({id, userid});
+        console.log(userid, 'lest group', id);
+        this.emitGroupEvent({type:"ON_UPDATE_GROUP", id});
+    }
+    pullInGroup(id, members) {
+        app.emit('GROUP_PULL_IN_RQ', {id, members});
+    }
+    onPullInGroup(obj) {
+        let {error, id, members} = obj;
+        if (error) {
+            console.log("pull "+id+" failed: for "+error);
         } else {
-            this.updateGroup({id:obj.id, members:obj.members});
-            console.log("pull "+obj.id+" success");
+            this.updateGroup({id, members});
+            console.log("pull "+id+" success");
         }
-    };
-    GroupMgr.prototype.onPullInGroupNotify = function(obj) {
-        if (_.contains(obj.pulledmembers, app.loginMgr.userid)) {
-            this.add({id:obj.id, name:obj.name, creator:obj.creator, type:obj.type, members:obj.members});
-            console.log('you have been pull',  obj.id);
-            this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});
+    }
+    onPullInGroupNotify(obj) {
+        let {pulledmembers, id, name, creator, type, members} = obj;
+        if (_.contains(pulledmembers, app.loginMgr.userid)) {
+            this.add({id, name, creator, type, members});
+            console.log('you have been pull', id);
+            this.emitGroupEvent({type:"ON_GROUP_LIST_CHANGE"});
         } else {
-            this.updateGroup({id:obj.id, members:obj.members, type:obj.type, name:obj.name});
-            if (obj.pulledmembers.length) {
-                console.log(JSON.stringify(obj.pulledmembers), 'been pull', obj.id, obj.members);
+            this.updateGroup({id, members, type, name});
+            if (pulledmembers.length) {
+                console.log(JSON.stringify(pulledmembers), 'been pull', id, members);
             } else {
-                console.log(obj.id, 'been modify', 'type='+obj.type);
+                console.log(id, 'been modify', 'type='+type);
             }
-            this.emitEvent({type:"ON_UPDATE_GROUP", id:obj.id});
+            this.emitGroupEvent({type:"ON_UPDATE_GROUP", id});
         }
-    };
-    GroupMgr.prototype.fireOutGroup = function(id, members) {
-        app.emit('GROUP_FIRE_OUT_RQ', {id:id, members:members});
-    };
-    GroupMgr.prototype.onFireOutGroup = function(obj) {
-        if (obj.error) {
-            console.log("fireOut "+obj.id+" failed: for "+obj.error);
+    }
+    fireOutGroup(id, members) {
+        app.emit('GROUP_FIRE_OUT_RQ', {id, members});
+    }
+    onFireOutGroup(obj) {
+        let {error, id, members} = obj;
+        if (error) {
+            console.log("fireOut "+id+" failed: for "+error);
         } else {
-            this.updateGroup({id:obj.id, members:obj.members});
-            console.log("fireOut "+obj.id+" success");
+            this.updateGroup({id, members});
+            console.log("fireOut "+id+" success");
         }
-    };
-    GroupMgr.prototype.onFireOutGroupNotify = function(obj) {
-        if (_.contains(obj.firedmembers, app.loginMgr.userid)) {
-            this.remove(obj);
-            console.log('you have been fire',  obj.id);
-            this.emitEvent({type:"ON_GROUP_LIST_CHANGE"});
-            this.emitEvent({type:"ON_FIRE_OUT_GROUP", id:obj.id});
-            app.messageMgr.removeLeftGroupMessages(obj.id);
+    }
+    onFireOutGroupNotify(obj) {
+        let {pulledfiredmembersmembers, id, name, creator, type, members} = obj;
+        if (_.contains(firedmembers, app.loginMgr.userid)) {
+            this.remove(id);
+            console.log('you have been fire',  id);
+            this.emitGroupEvent({type:"ON_GROUP_LIST_CHANGE"});
+            this.emitGroupEvent({type:"ON_FIRE_OUT_GROUP", id});
+            app.messageMgr.removeLeftGroupMessages(id);
         } else {
-            this.updateGroup({id:obj.id, members:obj.members, type:obj.type, name:obj.name});
-            console.log(JSON.stringify(obj.firedmembers), 'been fire', obj.id);
-            this.emitEvent({type:"ON_UPDATE_GROUP", id:obj.id});
+            this.updateGroup({id, members, type, name});
+            console.log(JSON.stringify(firedmembers), 'been fire', id);
+            this.emitGroupEvent({type:"ON_UPDATE_GROUP", id});
         }
-    };
-
-    return new GroupMgr();
-})();
-
-
+    }
+}
+module.exports = new Manager();

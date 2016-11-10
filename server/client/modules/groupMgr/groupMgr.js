@@ -43,9 +43,6 @@ module.exports = define(function(require) {
             _self.add(list[i]);
         }
     };
-    GroupMgr.prototype.showGroupMessage = function(obj) {
-        app.console.log('[', 'blue@'+obj.group, 'red@'+obj.from, ']'+obj.msg);
-    };
     GroupMgr.prototype.getGroupList = function(name, creators, members) {
         var obj = {};
         if (name) {
@@ -193,5 +190,3 @@ module.exports = define(function(require) {
 
     return new GroupMgr();
 });
-
-
