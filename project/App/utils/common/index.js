@@ -1,4 +1,8 @@
 module.exports = {
+    timeFormat(item) {
+        var {hour, minute, second} = item;
+        return (hour===undefined?'':(hour<10?'0':'')+hour+':')+(minute<10?'0':'')+minute+':'+(second===undefined?'':(second<10?'0':'')+second+':');
+    },
     until(test, iterator, callback) {
         if (!test()) {
             iterator((err)=>{

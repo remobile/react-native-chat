@@ -1,14 +1,13 @@
-var EventEmitter = require('events').EventEmitter;
-var assign = require("object-assign");
-var us = require('../../utils/userSetting');
-var constants = require('../../utils/constants');
+'use strict';
+var ReactNative = require('react-native');
+var {
+    AsyncStorage,
+} = ReactNative;
+var EventEmitter = require('EventEmitter');
+var fisrtPinyin = require('../../utils/pinyin');
 
-module.exports = (function() {
-    "use strict";
-
-    function CallMgr() {
-        assign(this, EventEmitter.prototype);
-
+class Manager extends EventEmitter {
+    constructor() {
         this.callid = localStorage.callid||1;
         //call type
         this.AUDIO_TYPE = 0;
@@ -31,17 +30,13 @@ module.exports = (function() {
         this.session = null;
         this.time = {hour:0, minute:0, second:0};
     }
-
-    CallMgr.prototype.emitCallChange = function(data) {
-        this.emit("call_change", data);
-    };
-    CallMgr.prototype.addCallChangeListener = function(callback) {
-        this.on("call_change", callback);
-    };
-    CallMgr.prototype.removeCallChangeListener = function(callback) {
-        this.removeListener("call_change", callback);
-    };
-    CallMgr.prototype.updateTime = function(callback) {
+    emitCallEvent(data) {
+        this.emit("CALL_EVENT", data);
+    }
+    addCallEventListener(target) {
+        target.addListenerOn(this, "CALL_EVENT", target.onCallEventListener);
+    }
+    updateTime(callback) {
         var self = app.callMgr;
         var time = self.time;
         var STATUS = ['空闲中...', '拨号中...','电话呼入...', '通话中...', '对方正在通话中', '对方拒绝接听', '对方终止了电话',  '对方不在线', '断开了连接'];
@@ -60,21 +55,17 @@ module.exports = (function() {
                 }
             }
         }
-        var hour = time.hour;
-        var minute = time.minute;
-        var second = time.second;
-        time = (hour<10?'0':'')+hour+':'+(minute<10?'0':'')+minute+':'+(second<10?'0':'')+second;
-        callback(time, STATUS[self.state]);
+        callback(app.utils.timeFormat(time), STATUS[self.state]);
         setTimeout(self.updateTime, 1000, callback);
-    };
-    CallMgr.prototype.increaseCallId = function() {
+    }
+    increaseCallId() {
         this.callid++;
         if (!this.callid) {
             this.callid = 1;
         }
         localStorage.callid = this.callid;
-    };
-    CallMgr.prototype.call = function(isInitiator, userid, type, callid) {
+    }
+    call(isInitiator, userid, type, callid) {
         console.log('calling to ' + userid + ', isInitiator: ' + isInitiator + ', type:' + type);
         var self = this;
         var config = {
@@ -100,19 +91,19 @@ module.exports = (function() {
         });
         session.on('answer', function () {
             console.log('he/she is answered');
-            self.emitCallChange({type:"ON_SESSION_ANSWER", userid:userid, callid:callid});
+            self.emitCallChange({type:"ON_SESSION_ANSWER", userid, callid});
         });
         session.on('disconnect', function () {
             if (self.state === self.STATE_CALLOUT || self.state === self.STATE_CALLIN || self.state === self.STATE_CALLING ) {
                 console.log('session disconnected');
                 self.state = self.STATE_DISCONNECT;
-                self.emitCallChange({type:"ON_PRE_CALL_HANGUP_NOTIFY", callid:callid});
+                self.emitCallChange({type:"ON_PRE_CALL_HANGUP_NOTIFY", callid});
                 app.sound.playRing(app.resource.aud_hangup);
-                app.emit('CALL_HANGUP_RQ', {userid: userid, type: type, callid: callid});
+                app.emit('CALL_HANGUP_RQ', {userid:, type, callid});
                 setTimeout(function() {
                     if (self.state === self.STATE_DISCONNECT) {
                         app.sound.stopRing();
-                        self.emitCallChange({type:"ON_CALL_HANGUP_NOTIFY", callid:callid});
+                        self.emitCallChange({type:"ON_CALL_HANGUP_NOTIFY", callid});
                         self.state = self.STATE_FREE;
                     }
                 }, self.delay);
@@ -121,21 +112,21 @@ module.exports = (function() {
         });
         session.call();
         this.session = session;
-    };
-    CallMgr.prototype.onCallWebrtcSignalNotify = function(obj) {
+    }
+    onCallWebrtcSignalNotify(obj) {
         console.log('onCallWebrtcSignalNotify', obj);
         var session = this.session;
         session&&session.receiveMessage(JSON.parse(obj.data));
-    };
-    CallMgr.prototype.callOut = function(userid, type) {
+    }
+    callOut(userid, type) {
         this.time = {hour:0, minute:0, second:0};
         this.increaseCallId();
-        app.emit('CALL_OUT_RQ', {userid:userid, type:type, callid:this.callid});
+        app.emit('CALL_OUT_RQ', {userid, type, callid:this.callid});
         app.sound.playRing(app.resource.aud_call_out);
         this.state = this.STATE_CALLOUT;
         return this.callid;
-    };
-    CallMgr.prototype.onCallOut = function(obj) {
+    }
+    onCallOut(obj) {
         console.log('onCallOut', obj);
         if (obj.error) {
             app.(obj.error);
@@ -150,41 +141,43 @@ module.exports = (function() {
                 }
             }, this.delay);
         }
-    };
-    CallMgr.prototype.onCallInNotify = function(obj) {
+    }
+    onCallInNotify(obj) {
+        let {type, userid, callid} = obj;
         console.log('onCallInNotify', obj);
         if (this.state != this.STATE_FREE) {
-            app.emit('CALL_IN_NFS', {userid:obj.userid, type:obj.type, callid:obj.callid, answer:2});
+            app.emit('CALL_IN_NFS', {userid, type, callid, answer:2});
             return;
         }
         this.time = {hour:0, minute:0, second:0};
         this.state = this.STATE_CALLIN;
         app.sound.playRing(app.resource.aud_call_in);
-        if (obj.type === this.VIDEO_TYPE) {
-            app.showView('videoCall', 'fade', {userid:obj.userid, callid:obj.callid});
+        if (ype === this.VIDEO_TYPE) {
+            app.showView('videoCall', 'fade', {userid, callid});
         } else {
-            app.showView('audioCall', 'fade', {userid:obj.userid, callid:obj.callid});
+            app.showView('audioCall', 'fade', {userid, callid});
         }
-    };
-    CallMgr.prototype.answerCallIn = function(userid, type, callid) {
+    }
+    answerCallIn(userid, type, callid) {
         console.log('answerCallIn', userid, type, callid);
         this.time = {hour:0, minute:0, second:0};
         this.call(false, userid, type, callid);
-        app.emit('CALL_IN_NFS', {userid:userid, type:type, callid:callid, answer:0});
+        app.emit('CALL_IN_NFS', {userid, type, callid, answer:0});
         app.sound.stopRing();
         this.state = this.STATE_CALLING;
-    };
-    CallMgr.prototype.refuseCallIn = function(userid, type, callid) {
-        app.emit('CALL_IN_NFS', {userid:userid, type:type, callid:callid, answer:1});
+    }
+    refuseCallIn(userid, type, callid) {
+        app.emit('CALL_IN_NFS', {userid, type, callid, answer:1});
         app.sound.stopRing();
         this.state = this.STATE_FREE;
-    };
-    CallMgr.prototype.onCallInReplyNotify = function(obj) {
+    }
+    onCallInReplyNotify(obj) {
+        let {type, userid, callid} = obj;
         console.log('onCallInReplyNotify', obj);
         if (obj.answer === 0) {
             console.log("he/she answer call");
-            this.emitCallChange({type:"ON_CALLOUT_ANSWERED", callid:obj.callid});
-            this.call(true, obj.userid, obj.type, obj.callid);
+            this.emitCallChange({type:"ON_CALLOUT_ANSWERED", callid});
+            this.call(true, userid, type, callid);
             this.time = {hour:0, minute:0, second:0};
             app.sound.stopRing();
             this.state = this.STATE_CALLING;
@@ -197,7 +190,7 @@ module.exports = (function() {
                 if (self.state === self.STATE_REFUSE) {
                     app.sound.stopRing();
                     self.state = self.STATE_FREE;
-                    self.emitCallChange({type:"ON_CALLOUT_REFUSED", callid:obj.callid});
+                    self.emitCallChange({type:"ON_CALLOUT_REFUSED", callid});
                 }
             }, this.delay);
         } else {
@@ -209,29 +202,30 @@ module.exports = (function() {
                 if (self.state === self.STATE_BUSY) {
                     app.sound.stopRing();
                     self.state = self.STATE_FREE;
-                    self.emitCallChange({type:"ON_CALLOUT_REFUSED", callid:obj.callid});
+                    self.emitCallChange({type:"ON_CALLOUT_REFUSED", callid});
                 }
             }, this.longdelay);
         }
-    };
-    CallMgr.prototype.callHangup = function(userid, type, callid) {
+    }
+    callHangup(userid, type, callid) {
         console.log('callHangup', userid, type, callid);
         console.log(this.state);
         app.sound.stopRing();
         if (this.state === this.STATE_CALLOUT || this.state === this.STATE_CALLIN || this.state === this.STATE_CALLING ) {
             this.state = this.STATE_FREE;
             var session = this.session;
-            app.emit('CALL_HANGUP_RQ', {userid: userid, type: type, callid: callid});
+            app.emit('CALL_HANGUP_RQ', {userid, type, callid});
             session && session.close();
             this.session = null;
         }
         this.state = this.STATE_FREE;
-    };
-    CallMgr.prototype.onCallHangup = function(obj) {
+    }
+    onCallHangup(obj) {
         console.log("i hang up call");
-    };
-    CallMgr.prototype.onCallHangupNotify = function(obj) {
-        this.emitCallChange({type:"ON_PRE_CALL_HANGUP_NOTIFY", callid:obj.callid});
+    }
+    onCallHangupNotify(obj) {
+        let {callid} = obj;
+        this.emitCallChange({type:"ON_PRE_CALL_HANGUP_NOTIFY", callid});
         if (this.state === this.STATE_FREE) {
             return;
         }
@@ -242,16 +236,13 @@ module.exports = (function() {
         setTimeout(function() {
             if (self.state === self.STATE_HANGUP) {
                 self.state = self.STATE_FREE;
-                self.emitCallChange({type:"ON_CALL_HANGUP_NOTIFY", callid:obj.callid});
+                self.emitCallChange({type:"ON_CALL_HANGUP_NOTIFY", callid});
                 app.sound.stopRing();
             }
         }, this.delay);
         var session = this.session;
         session&&session.close();
         this.session = null;
-    };
-
-    return new CallMgr();
-})();
-
-
+    }
+}
+module.exports = new Manager();
