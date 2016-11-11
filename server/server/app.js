@@ -19,7 +19,7 @@
         _self.error = require(modulePath+'utils/error');
         _self.console = require(modulePath+'utils/console');
         _self.socketMgr = require(modulePath+'socketMgr/socketMgr');
-        _self.expressMgr = require(modulePath+'socketMgr/expressMgr');
+        _self.expressMgr = require(modulePath+'expressMgr/expressMgr');
         _self.router = require(modulePath+'socketMgr/router');
         _self.userMgr = require(modulePath+'userMgr/userMgr');
         _self.onlineUserMgr = require(modulePath+'userMgr/onlineUserMgr');
@@ -46,4 +46,3 @@
     app = new App();
     app.start();
 })();
-
