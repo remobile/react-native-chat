@@ -18,7 +18,7 @@ let TEST_CONFIG = {
 
 
 //web服务器 依次是本地服务器， 测试服务器， 正式服务器
-const BASE_SERVERS = ['localhost:3000', '120.76.207.78', 'www.gyyxjqd.com'];
+const BASE_SERVERS = ['localhost:8888', '120.76.207.78', 'www.gyyxjqd.com'];
 const BASE_SERVER = CONFIG.ISSUE ? BASE_SERVERS[2] : TEST_CONFIG.ISSUE ? BASE_SERVERS[1] : BASE_SERVERS[TEST_CONFIG.BASE_SERVER_INDEX];
 
 module.exports = {
@@ -32,7 +32,7 @@ module.exports = {
     IOS_APPID: '',
     //web服务器
     DES_KEY:"ABCDEFGH", //DES加密KEY
-    SERVER: 'http://'+BASE_SERVER+'/JFBSample/api/', //web服务器地址
+    SERVER: 'http://'+BASE_SERVER+'/api/', //web服务器地址
     BASE_SERVER: 'http://'+BASE_SERVER+'/',//程序更新下载地址
     //获取验证码的超时时间
     DEFAULT_CODE_TIMEOUT: 90,

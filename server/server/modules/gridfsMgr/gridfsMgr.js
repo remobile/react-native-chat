@@ -24,7 +24,13 @@ module.exports = (function() {
         fs.createReadStream(__dirname+'/../../'+path).pipe(writestream);
     };
     Mgr.prototype.getUserHead = function(id, res) {
-        _self.gfs.createReadStream({_id: id}).pipe(res);
+        _self.gfs.exist({_id: id}, function(err, found) {
+            if (err || !found) {
+                fs.createReadStream(__dirname+'/../../public/img/default_user_head.png').pipe(res);
+            } else {
+                _self.gfs.createReadStream({_id: id}).pipe(res);
+            }
+        });
     };
 
     return Mgr;

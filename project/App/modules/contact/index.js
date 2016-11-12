@@ -27,12 +27,14 @@ module.exports = React.createClass({
         });
     },
     renderRow(obj) {
-        var {username, online} = app.userMgr.users[obj];
+        var {username, online, head} = app.userMgr.users[obj];
+        var uri = app.route.ROUTE_USER_HEAD(head);
+        console.log(uri);
         return (
             <View style={styles.row}>
                 <Image
                     resizeMode='stretch'
-                    source={app.img.login_qq_button}
+                    source={{uri:uri}}
                     style={styles.avatar}
                     />
                 <Text style={[styles.username, {color: online?'green':'gray'}]}>{username}</Text>
