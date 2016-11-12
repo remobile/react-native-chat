@@ -11,6 +11,7 @@ var {
     TouchableOpacity,
 } = ReactNative;
 
+var Subscribable = require('Subscribable');
 import {Checkbox} from 'antd-mobile';
 var ForgetPassword = require('./ForgetPassword.js');
 var Home = require('../home/index.js');
@@ -64,6 +65,13 @@ var NoWeixinQQPanel = React.createClass({
 });
 
 module.exports = React.createClass({
+    mixins: [Subscribable.Mixin],
+    componentWillMount() {
+        app.loginMgr.addLoginEventListener(this);
+    },
+    onLoginEventListener(obj) {
+        this.onLogin(obj);
+    },
     getInitialState() {
         const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
         const history = app.loginMgr.history[0]||{};
@@ -90,6 +98,13 @@ module.exports = React.createClass({
             return;
         }
         app.loginMgr.login({userid:phone, password, remeberPassword, autoLogin});
+    },
+    onLogin(obj) {
+        if (!obj.error) {
+            app.navigator.replace({
+                component: Home,
+            });
+        }
     },
     doShowForgetPassword() {
         app.navigator.push({

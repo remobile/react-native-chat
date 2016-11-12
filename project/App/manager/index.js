@@ -8,8 +8,8 @@ module.exports = {
 	// alipay: require('./payMgr/AlipayMgr.js'),
 	// wxpay: require('./payMgr/WXpayMgr.js'),
 	//chat
-	// call: require('./callMgr/CallMgr'),
-	// group: require('./groupMgr/GroupMgr'),
+	// callMgr: require('./callMgr/CallMgr'),
+	groupMgr: require('./groupMgr/GroupMgr'),
 	messageMgr: require('./messageMgr/MessageMgr'),
 	socketMgr: require('./socketMgr/SocketMgr'),
 	notifyMgr: require('./userMgr/NotifyMgr'),

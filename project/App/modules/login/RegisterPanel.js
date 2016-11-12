@@ -10,13 +10,19 @@ var {
     TouchableOpacity,
 } = ReactNative;
 
-var TimerMixin = require('react-timer-mixin');
+var Subscribable = require('Subscribable');
 var {Button, WebviewMessageBox} = COMPONENTS;
 
 module.exports = React.createClass({
-    mixins: [TimerMixin],
+    mixins: [Subscribable.Mixin],
+    componentWillMount() {
+        app.loginMgr.addRegisterEventListener(this);
+    },
+    onRegisterEventListener(obj) {
+        this.onRegister(obj);
+    },
     doRegister() {
-        const {protocalRead, phone, password, rePassword, email} = this.state;
+        const {protocalRead, phone, password, rePassword, username, email} = this.state;
         if (!protocalRead) {
             Toast('注册前请先阅读用户协议');
             return;
@@ -26,11 +32,15 @@ module.exports = React.createClass({
             return;
         }
         if (!app.utils.checkPassword(password)) {
-            Toast('密码必须由 6-20 位的数字或，字母，下划线组成');
+            Toast('密码必须由 3-20 位的数字或，字母，下划线组成');
             return;
         }
         if (password !== rePassword) {
             Toast('两次输入的密码不一致');
+            return;
+        }
+        if (!username) {
+            Toast('为了更好地体验，请输入您的昵称');
             return;
         }
         if (!app.utils.checkMailAddress(email)) {
@@ -38,19 +48,19 @@ module.exports = React.createClass({
             return;
         }
         var param = {
-            phone,
+            userid:phone,
             email,
+            username,
             password,
         };
-        POST(app.route.ROUTE_REGISTER, param, this.doRegisterSuccess, true);
+        app.loginMgr.register(param);
     },
-    doRegisterSuccess(data) {
-        if (data.success) {
-            Toast('注册成功');
-            this.props.changeToLoginPanel(this.state.phone);
-        } else {
-            Toast(data.msg);
+    onRegister(obj) {
+        if (obj.error) {
+            app.showError(obj.error);
+            return;
         }
+        this.props.changeToLoginPanel(this.state.phone);
     },
     doShowProtocal() {
         app.showModal(
@@ -63,12 +73,11 @@ module.exports = React.createClass({
             phone: '',
             password: '',
             rePassword: '',
+            username: '',
             email: '',
             protocalRead: true,
             overlayShow:false,
         };
-    },
-    componentDidMount() {
     },
     changeProtocalState() {
         this.setState({protocalRead: !this.state.protocalRead});
@@ -99,6 +108,13 @@ module.exports = React.createClass({
                         placeholder='再次输入密码'
                         secureTextEntry={true}
                         onChangeText={(text) => this.setState({rePassword: text})}
+                        style={styles.text_input2}
+                        />
+                </View>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        placeholder='昵称'
+                        onChangeText={(text) => this.setState({username: text})}
                         style={styles.text_input2}
                         />
                 </View>
@@ -170,8 +186,8 @@ var styles = StyleSheet.create({
         fontSize: 14,
     },
     btnRegisterContainer: {
-        marginTop: 60,
-        height: 80,
+        flex: 1,
+        justifyContent: 'center',
     },
     btnRegister: {
         marginHorizontal: 10,
@@ -182,13 +198,11 @@ var styles = StyleSheet.create({
         fontWeight: '600',
     },
     bottomContainer: {
-        flex: 1,
+        height: 50,
     },
     protocalContainer: {
-        flex: 1,
         flexDirection: 'row',
         justifyContent: 'center',
-        alignItems: 'center',
     },
     protocal_icon: {
         height: 18,

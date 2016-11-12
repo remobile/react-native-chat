@@ -11,7 +11,7 @@ class Manager extends EventEmitter {
         super();
         this.reset();
 	}
-    emitChange() {
+    emitUserListChange() {
         this.emit('USER_LIST_CHANGE_EVENT');
     }
     addUserListChangeListener(target) {
@@ -28,7 +28,7 @@ class Manager extends EventEmitter {
         if(!users.hasOwnProperty(userid)) {
             users[userid] = obj;
             this.addGroupedUser(userid);
-            this.emitChange();
+            this.emitUserListChange();
         }
     }
     remove(obj) {
@@ -38,18 +38,18 @@ class Manager extends EventEmitter {
             var username = users[userid].username;
             delete users[userid];
             this.removeGroupedUser(userid, username);
-            this.emitChange();
+            this.emitUserListChange();
         }
     }
     online(obj) {
         var userid = obj.userid;
         this.users[userid].online = true;
-        this.emitChange();
+        this.emitUserListChange();
     }
     offline(obj) {
         var userid = obj.userid;
         this.users[userid].online = false;
-        this.emitChange();
+        this.emitUserListChange();
     }
     addList(list) {
         var users = this.users;
@@ -60,7 +60,7 @@ class Manager extends EventEmitter {
                 this.addGroupedUser(userid);
             }
         }
-        this.emitChange();
+        this.emitUserListChange();
         this.init = true;
     }
     addGroupedUser(userid) {
@@ -111,7 +111,7 @@ class Manager extends EventEmitter {
             users[userid].username = obj.username;
             users[userid].phone = obj.phone;
             users[userid].sign = obj.sign;
-            this.emitChange();
+            this.emitUserListChange();
         }
     }
 }

@@ -8,6 +8,7 @@ var fisrtPinyin = require('../../utils/pinyin');
 
 class Manager extends EventEmitter {
     constructor() {
+        super();
         this.callid = localStorage.callid||1;
         //call type
         this.AUDIO_TYPE = 0;
@@ -99,7 +100,7 @@ class Manager extends EventEmitter {
                 self.state = self.STATE_DISCONNECT;
                 self.emitCallChange({type:"ON_PRE_CALL_HANGUP_NOTIFY", callid});
                 app.sound.playRing(app.resource.aud_hangup);
-                app.emit('CALL_HANGUP_RQ', {userid:, type, callid});
+                app.emit('CALL_HANGUP_RQ', {userid, type, callid});
                 setTimeout(function() {
                     if (self.state === self.STATE_DISCONNECT) {
                         app.sound.stopRing();
@@ -129,7 +130,7 @@ class Manager extends EventEmitter {
     onCallOut(obj) {
         console.log('onCallOut', obj);
         if (obj.error) {
-            app.(obj.error);
+            app.showError(obj.error);
             this.state = this.STATE_ERROR;
             app.sound.playRing(app.resource.aud_call_error);
             var self = this;

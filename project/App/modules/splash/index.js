@@ -9,10 +9,11 @@ var {
     Text,
 } = ReactNative;
 
+var Subscribable = require('Subscribable');
 var TimerMixin = require('react-timer-mixin');
 var SplashScreen = require('@remobile/react-native-splashscreen');
 var Login = require('../login/Login.js');
-// var Login = require('../remobile/index.js');
+var Home = require('../home/index.js');
 var Update = require('@remobile/react-native-update');
 
 var {ProgressBar} = COMPONENTS;
@@ -43,7 +44,13 @@ var ProgressInfo = React.createClass({
 });
 
 module.exports = React.createClass({
-    mixins: [TimerMixin],
+    mixins: [TimerMixin, Subscribable.Mixin],
+    componentWillMount() {
+        app.loginMgr.addLoginEventListener(this);
+    },
+    onLoginEventListener(obj) {
+        this.onLogin(obj);
+    },
     getInitialState() {
         return {
             opacity: new Animated.Value(1),
@@ -118,12 +125,24 @@ module.exports = React.createClass({
         });
         this.closeSplash();
     },
+    changeToHomePage() {
+        app.navigator.replace({
+            component: Home,
+        });
+        this.closeSplash();
+    },
     changeToNextPage() {
         if (app.chatconnect && app.loginMgr.autoLogin) {
             app.loginMgr.login();
-            this.closeSplash();
         } else {
             this.changeToLoginPage();
+        }
+    },
+    onLogin(obj) {
+        if (obj.error) {
+            this.changeToLoginPage();
+        } else {
+            this.changeToHomePage();
         }
     },
     closeSplash() {

@@ -7,10 +7,11 @@ module.exports = define(function(require) {
 
     Register.prototype.register = function(args) {
         args = args.trim().split(/\s+/);
-        if (args.length >= 3) {
+        if (args.length >= 4) {
             _self.username = args[0];
             _self.phone = args[1];
             _self.password = args[2];
+            _self.email = args[3];
             _self.doRegister();
         } else {
             _self.questionUserName();
@@ -34,10 +35,23 @@ module.exports = define(function(require) {
             //if (/^1[\d]{10}/.test(phone)) {
             if (phone) {
                 _self.phone = phone;
-                _self.questionPassword();
+                _self.questionEmail();
             } else {
                 app.console.error("phone is invalid");
                 _self.questionPhone();
+            }
+        });
+    };
+    Register.prototype.questionEmail = function() {
+        app.console.question("Email: ", function(email) {
+            email = email.trim();
+            //if (/^1[\d]{10}/.test(phone)) {
+            if (email) {
+                _self.email = email;
+                _self.questionPassword();
+            } else {
+                app.console.error("email is invalid");
+                _self.questionEmail();
             }
         });
     };
@@ -58,6 +72,7 @@ module.exports = define(function(require) {
             userid: _self.phone,
             password: _self.password,
             username: _self.username,
+            email: _self.email,
         };
         app.socket.emit('USER_REGISTER_RQ', param);
     };

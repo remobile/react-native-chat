@@ -5,7 +5,8 @@ module.exports = (function() {
     var UserSchema = Schema({
         userid: {type:String, unique:true, required: true},
         password: {type:String, required: true},
-        username: {type:String, unique:true},
+        username: {type:String, required: true},
+        email: {type:String, required: true},
         head: Schema.ObjectId,
         sign: {type:String},
         date: {type: Date, default: Date.now},
@@ -15,6 +16,7 @@ module.exports = (function() {
     });
 
     UserSchema.statics._add = function(obj, callback) {
+        console.log(obj);
         var user = this(obj);
         user.save(function(err) {
             var error;

@@ -323,7 +323,7 @@ class Manager extends EventEmitter {
                 ()=>{
                     let {users} = app.userMgr;
                     this.noticeNewMessage();
-                    obj.forEach(item)=>{
+                    obj.forEach((item)=>{
                         let {type, from, groupid, time, msg, msgtype, touserid} = item;
                         time = new Date(time).getTime();
                         if (type === this.GROUP_TYPE) {

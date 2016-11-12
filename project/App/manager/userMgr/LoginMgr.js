@@ -13,6 +13,18 @@ class Manager extends EventEmitter {
         this.history = [];
         this.get();
     }
+    emitRegisterEvent(obj) {
+        this.emit('REGISTER_EVENT', obj);
+    }
+    addRegisterEventListener(target) {
+        target.addListenerOn(this, "REGISTER_EVENT", target.onRegisterEventListener);
+    };
+    emitLoginEvent(obj) {
+        this.emit('LOGIN_EVENT', obj);
+    }
+    addLoginEventListener(target) {
+        target.addListenerOn(this, "LOGIN_EVENT", target.onLoginEventListener);
+    };
     get() {
         return new Promise(async(resolve, reject)=>{
             var history = [];
@@ -22,7 +34,7 @@ class Manager extends EventEmitter {
             } catch(e) {
             }
             this.history = history||[];
-            var {userid, password, autoLogin, remeberPassword} = _.last(this.history)||{};
+            var {userid, password, autoLogin, remeberPassword} = _.first(this.history)||{};
             this.userid = userid;
             this.password = password;
             this.autoLogin = autoLogin;
@@ -36,7 +48,7 @@ class Manager extends EventEmitter {
             resolve();
         });
     }
-    saveHistory(obj) {
+    saveHistory() {
         const {userid, password} = this;
         var history = this.history;
         history = _.reject(history, (o)=>o.userid===userid);
@@ -77,10 +89,13 @@ class Manager extends EventEmitter {
     onLogin(obj) {
         app.hideWait();
         if (obj.error) {
+            this.reconnect = false;
             app.showError(obj.error);
+            this.emitLoginEvent(obj);
             return;
         }
         if (!this.reconnect) {
+            console.log("=================123");
             this.saveHistory();
         }
         this.online = true;
@@ -88,18 +103,13 @@ class Manager extends EventEmitter {
         this.username = obj.username;
         app.socketMgr.emit('USER_LOGIN_SUCCESS_NFS');
         app.messageMgr.initMessageDatabase(this.userid);
-        app.navigator.replace({
-            component: require('../../modules/home/index.js'),
-        });
+        this.emitLoginEvent(obj);
+    }
+    register(obj) {
+        app.socketMgr.emit('USER_REGISTER_RQ', obj, true);
     }
     onRegister(obj) {
-        console.log(obj);
-        if (obj.error) {
-            app.showError(obj.error);
-            return;
-        }
-        ("Register Success");
-        app.goBack();
+        this.emitRegisterEvent(obj);
     }
     onRegisterNotify(obj) {
         console.log(obj);
