@@ -47,12 +47,8 @@ module.exports = define(function(require) {
             app.router.ON_USER_OFFONLINE_MESSAGE_NF(obj);
         }).on('USER_GET_MESSAGE_RS', function(obj) {
             app.router.ON_USER_GET_MESSAGE_RS(obj);
-        }).on('USERS_UPDATE_HEAD_RS', function(obj) {
-            app.router.ON_USERS_UPDATE_HEAD_RS(obj);
         }).on('USERS_UPDATE_HEAD_NF', function(obj) {
             app.router.ON_USERS_UPDATE_HEAD_NF(obj);
-        }).on('USERS_GET_HEAD_RS', function(obj) {
-            app.router.ON_USERS_GET_HEAD_RS(obj);
         }).on('USERS_UPDATE_USERINFO_RS', function(obj) {
             app.router.ON_USERS_UPDATE_USERINFO_RS(obj);
         }).on('USERS_UPDATE_USERINFO_NF', function(obj) {

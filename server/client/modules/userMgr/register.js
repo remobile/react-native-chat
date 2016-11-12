@@ -58,8 +58,6 @@ module.exports = define(function(require) {
             userid: _self.phone,
             password: _self.password,
             username: _self.username,
-            sign: "this is a test sign",
-            head: app.images.getUserHead(parseInt(Math.random()*100))
         };
         app.socket.emit('USER_REGISTER_RQ', param);
     };

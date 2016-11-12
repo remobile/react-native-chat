@@ -16,7 +16,8 @@ define(function(require) {
         this.error = require(modulePath+'utils/error');
         this.console = require(modulePath+'utils/console');
         this.command = require(modulePath+'utils/command');
-        this.images = require(modulePath+'utils/images');
+        this.upload = require(modulePath+'utils/upload');
+        this.images = require(modulePath+'images');
         this.socketMgr = require(modulePath+'socketMgr/socketMgr');
         this.router = require(modulePath+'socketMgr/router');
         this.register = require(modulePath+'userMgr/register');

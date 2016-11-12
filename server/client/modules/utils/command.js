@@ -240,7 +240,7 @@ module.exports = define(function(require) {
         app.console.print('    <l|login [username password]>: login, username and password is opiton');
         app.console.print('    <ou|onlineusers>: show users online');
         app.console.print('    <u|users>: show all users online and offline');
-        app.console.print('    <he|head> [head]: update user\'s head');
+        app.console.print('    <he|head> [head]: update user\'s head, head is a number in[0, 32]');
         app.console.print('    <ui|update> [username sign]: update user\'s info');
         app.console.print('    <g|groups l|list {name:xx,users:xx,creators:xx}>: show group list, userid and creators is option');
         app.console.print('    <g|groups i|info group>: show group info');

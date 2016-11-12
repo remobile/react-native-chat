@@ -62,14 +62,8 @@ module.exports = define(function(require) {
     Router.prototype.ON_USER_GET_MESSAGE_RS = function(obj) {
         app.messageMgr.onGetMessage(obj);
     };
-    Router.prototype.ON_USERS_UPDATE_HEAD_RS = function(obj) {
-        app.console.log("update head success", obj);
-    };
     Router.prototype.ON_USERS_UPDATE_HEAD_NF = function(obj) {
         app.notifyMgr.updateUserHead(obj);
-    };
-    Router.prototype.ON_USERS_GET_HEAD_RS = function(obj) {
-        app.console.log(obj);
     };
     Router.prototype.ON_USERS_UPDATE_USERINFO_RS = function(obj) {
         app.userInfo.onUpdateUserInfo(obj);

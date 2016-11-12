@@ -61,11 +61,26 @@ module.exports = define(function(require) {
         }
         app.console.log.apply(null, list);
     };
-    UserMgr.prototype.updateHead = function(head) {
-        app.socket.emit('USERS_UPDATE_HEAD_RQ', {head:head});
+    UserMgr.prototype.updateHead = function(file) {
+        var options = {
+            url:'http://'+app.id+':'+app.port+'/api/uploadUserHead',
+            method: 'POST',
+            verbose: true,
+            param:'file', //文件上传字段名
+            file, //文件位置
+            fields:{ //其余post字段
+            	userid: app.login.userid,
+            }
+        };
+        upload(options).then(function(data) {
+            app.console.log('green@success', data);
+        }, function() {
+            app.console.log('red@error');
+        }, function( progress ) {
+            app.console.log('gray@upload progress', progress);
+        });
+
     };
 
     return new UserMgr();
 });
-
-
