@@ -13,7 +13,10 @@ module.exports = (function() {
             filename
         }).on('close', function (file) {
             var {_id} = file;
-            app.db.User._updateUserInfo(userid, {head: _id}, function(){
+            app.db.User._updateUserInfo(userid, {head: _id}, function(doc){
+                if (doc.head) {
+                    _self.gfs.remove({_id: doc.head})
+                }
                 callback({id:_id});
                 app.socketMgr.notifyOnlineUsers(userid, 'USERS_UPDATE_HEAD_NF', {userid, head:_id});
             });

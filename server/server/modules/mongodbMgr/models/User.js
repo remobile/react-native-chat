@@ -45,8 +45,8 @@ module.exports = (function() {
         this.update({userid:{$in:userids}}, {$pull:{groups:groupid}}, {multi:true}, function(){});
     };
     UserSchema.statics._updateUserInfo = function(userid, obj, callback) {
-        this.findOneAndUpdate({userid:userid}, obj, function(){
-            callback();
+        this.findOneAndUpdate({userid:userid}, obj, {new:false, select:'-_id -__v'}, function(err, doc){
+            callback(doc);
         });
     };
 
