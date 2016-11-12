@@ -67,12 +67,6 @@ class Manager {
             messageMgr.showOfflineMessage(obj);
         })._on('USER_GET_MESSAGE_RS', (obj) => {
             messageMgr.onGetMessage(obj);
-        })._on('USERS_UPDATE_HEAD_RS', (obj) => {
-            personalInfo.onUpdateHead();
-        })._on('USERS_UPDATE_HEAD_NF', (obj) => {
-            notifyMgr.updateUserHead(obj);
-        })._on('USERS_GET_HEAD_RS', (obj) => {
-            notifyMgr.onGetUserHead(obj);
         })._on('USERS_UPDATE_USERINFO_RS', (obj) => {
             personalInfo.onUpdateUserInfo(obj);
         })._on('USERS_UPDATE_USERINFO_NF', (obj) => {

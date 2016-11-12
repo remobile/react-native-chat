@@ -101,9 +101,6 @@ class Manager extends EventEmitter {
         }
         return null;
     }
-    updateHead(head) {
-        app.socketMgr.emit('USERS_UPDATE_HEAD_RQ', {head});
-    }
     updateUserInfo(username, phone, sign) {
         app.socketMgr.emit('USERS_UPDATE_USERINFO_RQ', {username, phone, sign});
     }

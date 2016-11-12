@@ -48,10 +48,6 @@ module.exports = (function() {
                 app.router.ON_USER_GET_MESSAGE_RQ(socket, obj);
             }).on('USERS_NOTIFY_NFS', function(){
                 app.router.ON_USERS_NOTIFY_NFS(socket);
-            }).on('USERS_UPDATE_HEAD_RQ', function(obj){
-                app.router.ON_USERS_UPDATE_HEAD_RQ(socket, obj);
-            }).on('USERS_GET_HEAD_RQ', function(obj){
-                app.router.ON_USERS_GET_HEAD_RQ(socket, obj);
             }).on('USERS_UPDATE_USERINFO_RQ', function(obj){
                 app.router.ON_USERS_UPDATE_USERINFO_RQ(socket, obj);
             }).on('GROUP_LIST_RQ', function(obj){

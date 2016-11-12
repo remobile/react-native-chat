@@ -29,12 +29,6 @@ module.exports = (function() {
     Router.prototype.ON_USERS_NOTIFY_NFS = function(socket) {
 		app.notifyMgr.clearNotify(socket);
 	};
-    Router.prototype.ON_USERS_UPDATE_HEAD_RQ = function(socket, obj) {
-		app.userMgr.updateHead(socket, obj);
-	};
-    Router.prototype.ON_USERS_GET_HEAD_RQ = function(socket, obj) {
-		app.userMgr.getHead(socket, obj);
-	};
     Router.prototype.ON_USERS_UPDATE_USERINFO_RQ = function(socket, obj) {
 		app.userMgr.updateUserInfo(socket, obj);
 	};

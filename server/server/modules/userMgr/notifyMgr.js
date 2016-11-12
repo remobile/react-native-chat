@@ -4,14 +4,8 @@ module.exports = (function() {
         _self = this;
     }
     NotifyMgr.prototype.sendUserNotify = function(socket) {
-        app.db.UserNotify._get(socket.userid, function (doc) {
-            if (doc) {
-                app.db.UserInfo._get(doc.head, function(docs) {
-                    socket.emit('USERS_NOTIFY_NF', {head:docs});
-                });
-            } else {
-                socket.emit('USERS_NOTIFY_NF', {head:[]});
-            }
+        app.db.UserNotify._get(socket.userid, function (docs) {
+            socket.emit('USERS_NOTIFY_NF', docs);
         });
     };
     NotifyMgr.prototype.add = function(userid) {
@@ -51,5 +45,3 @@ module.exports = (function() {
 
     return new NotifyMgr();
 })();
-
-
