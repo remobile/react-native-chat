@@ -1,5 +1,4 @@
 var multer = require('multer');
-var path = require('path');
 var fs = require('fs');
 
 module.exports = (function() {
@@ -8,6 +7,7 @@ module.exports = (function() {
         server.post('/api/uploadUserHead', multer({dest: 'public/temp/'}).single('file'), function (req, res) {
             var {originalname, path} = req.file;
             app.db.gridfs.saveUserHead(originalname, path, req.body.userid, function(obj) {
+                fs.unlink(path);
                 res.send(JSON.stringify(obj));
             });
         });

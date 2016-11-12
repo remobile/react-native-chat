@@ -1,17 +1,3 @@
-var multer = require('multer');
-var path = require('path');
-var fs = require('fs');
-var _ = require('lodash');
-
-const PER_COUNT = 10;
-const TEXT = 'fangyunjiang\n:::9::8::7:方运江2342342342342342342342342342342342342342342342343\n';
-let MESSAGE = {
-    avatar: 'http://localhost:3000/image/1.png',
-    name: '阿三',
-};
-const TIME1 = '2016-11-02 12:11:00';
-const TIME2 = '2016-10-05 11:11:11';
-
 module.exports = (function() {
     var _self;
 

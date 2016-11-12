@@ -63,7 +63,7 @@ module.exports = define(function(require) {
     };
     UserMgr.prototype.updateHead = function(file) {
         var options = {
-            url:'http://'+app.id+':'+app.port+'/api/uploadUserHead',
+            url:'http://'+app.ip+':'+app.port+'/api/uploadUserHead',
             method: 'POST',
             verbose: true,
             param:'file', //文件上传字段名
@@ -72,7 +72,7 @@ module.exports = define(function(require) {
             	userid: app.login.userid,
             }
         };
-        upload(options).then(function(data) {
+        app.upload(options).then(function(data) {
             app.console.log('green@success', data);
         }, function() {
             app.console.log('red@error');
