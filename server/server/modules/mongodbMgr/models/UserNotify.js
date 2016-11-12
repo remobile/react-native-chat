@@ -4,7 +4,7 @@ module.exports = (function() {
 
     var UserNotifySchema = Schema({
         userid: {type:String, unique:true, required: true},
-        head: {type:Array, default:[]} /*[userid, userid]*/
+        notice: {type:Array, default:[]} /*[userid, userid]*/
     }, {
          collection: 'usernotifies'
     });
@@ -39,5 +39,3 @@ module.exports = (function() {
 
     return mongoose.model('UserNotify', UserNotifySchema);
 })();
-
-

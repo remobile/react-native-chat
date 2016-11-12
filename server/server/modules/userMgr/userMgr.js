@@ -54,11 +54,11 @@ module.exports = (function() {
             });
         });
     };
-    UserMgr.prototype.updateHead = function(socket, obj) {
-        app.db.UserInfo._update(socket.userid, obj.head, function() {
+    UserMgr.prototype.updateHead = function(userid, obj) {
+        app.db.UserInfo._update(userid, obj.head, function() {
             socket.emit('USERS_UPDATE_HEAD_RS', {error:null});
-            app.socketMgr.notifyOnlineUsers(socket.userid, 'USERS_UPDATE_HEAD_NF', {userid:socket.userid, head:obj.head});
-            app.notifyMgr.addNotify(socket.userid, 'head');
+            app.socketMgr.notifyOnlineUsers(userid, 'USERS_UPDATE_HEAD_NF', {userid, head:obj.head});
+            app.notifyMgr.addNotify(userid, 'head');
         });
     };
     UserMgr.prototype.getHead = function(socket, users) {
@@ -75,5 +75,3 @@ module.exports = (function() {
 
     return new UserMgr();
 })();
-
-

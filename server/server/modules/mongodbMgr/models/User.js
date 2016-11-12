@@ -3,11 +3,13 @@ module.exports = (function() {
         Schema = mongoose.Schema;
 
     var UserSchema = Schema({
-        userid: {type:String, unique:true, required: true},//phone
+        userid: {type:String, unique:true, required: true},
         password: {type:String, required: true},
         username: {type:String, unique:true},
+        head: Schema.ObjectId,
         sign: {type:String},
-        groups: {type:Array, default:[]}
+        date: {type: Date, default: Date.now},
+        groups: {type:Array, default:[]},
     }, {
         collection: 'users'
     });
@@ -50,5 +52,3 @@ module.exports = (function() {
 
     return mongoose.model('User', UserSchema);
 })();
-
-
