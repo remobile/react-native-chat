@@ -13,6 +13,7 @@ var {
 
 var Subscribable = require('Subscribable');
 var InvertibleScrollView = require('react-native-invertible-scroll-view');
+var CacheImage = require('@remobile/react-native-cache-image');
 var MessageContainer = require('./MessageContainer.js');
 
 module.exports = React.createClass({
@@ -88,7 +89,10 @@ module.exports = React.createClass({
     renderRow(obj) {
         const {type, userid, touserid, groupid, msg, msgtype, send, timeLabel} = obj;
         const wordsList = this.props.parseWordsListFromText(msg);
-        const source = app.img.login_qq_button;
+        const {users} = app.userMgr;
+        const selfUserid = app.loginMgr.userid;
+        const head = users[userid].head;
+        const selfHead = users[selfUserid].head;
         return (
             <View>
                 {
@@ -100,13 +104,31 @@ module.exports = React.createClass({
                     </View>
                 }
                 <View style={styles.row}>
-                    { !send && <Image resizeMode='stretch' source={source} style={styles.avatar} /> }
+                    {
+                        !send &&
+                        <CacheImage
+                            resizeMode='stretch'
+                            defaultImage={app.img.personal_default_head}
+                            url={app.route.ROUTE_USER_HEAD(head)}
+                            style={styles.avatar}
+                            cacheId={'userhead_'+userid}
+                            />
+                    }
                 <View style={{flex:1}}>
                 <MessageContainer style={styles.message} send={send}>
                     {wordsList}
                 </MessageContainer>
                 </View>
-                    { !!send && <Image resizeMode='stretch' source={source} style={styles.avatar} /> }
+                    {
+                        !!send &&
+                        <CacheImage
+                            resizeMode='stretch'
+                            defaultImage={app.img.personal_default_head}
+                            url={app.route.ROUTE_USER_HEAD(selfHead)}
+                            style={styles.avatar}
+                            cacheId={'userhead_'+selfUserid}
+                            />
+                    }
                 </View>
             </View>
         )

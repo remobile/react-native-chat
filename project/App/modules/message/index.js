@@ -14,6 +14,7 @@ var Subscribable = require('Subscribable');
 const images = require('./expressions').images;
 var getTimeLabel = require('./getTimeLabel.js');
 var MessageInfo = require('./MessageInfo.js');
+var CacheImage = require('@remobile/react-native-cache-image');
 
 module.exports = React.createClass({
     mixins: [Subscribable.Mixin],
@@ -35,7 +36,7 @@ module.exports = React.createClass({
     },
     componentDidMount() {
         app.utils.until(
-            ()=>app.userMgr.init&&app.groupMgr.init,
+            ()=>app.userMgr.init/*&&app.groupMgr.init*/,
             (cb)=>setTimeout(cb, 100),
             ()=>app.messageMgr.getNewestMessage(app.loginMgr.userid)
         );
@@ -83,17 +84,21 @@ module.exports = React.createClass({
         return line;
     },
     renderRow(obj) {
-        var {type, userid, groupid, time, msg, msgtype, touserid} = obj;
-        var user = app.userMgr.users[userid];
-        var username = (userid===app.loginMgr.userid)?"我":(user.username);
-        var isGroup = (type===app.messageMgr.GROUP_TYPE);
+        const {type, userid, groupid, time, msg, msgtype, touserid} = obj;
+        const {users} = app.userMgr;
+        const user = users[userid];
+        const head = users[userid].head;
+        const username = (userid===app.loginMgr.userid)?"我":(user.username);
+        const isGroup = (type===app.messageMgr.GROUP_TYPE);
         return (
             <TouchableHighlight underlayColor="#CFCFCF" onPress={this.showMessageInfo.bind(null, type, userid)}>
                 <View style={styles.row}>
-                    <Image
+                    <CacheImage
                         resizeMode='stretch'
-                        source={app.img.login_qq_button}
+                        defaultImage={app.img.personal_default_head}
+                        url={app.route.ROUTE_USER_HEAD(head)}
                         style={styles.avatar}
+                        cacheId={'userhead_'+userid}
                         />
                     <View style={styles.messageContainer}>
                         <Text style={styles.username} numberOfLines={1}>{username}</Text>

@@ -256,7 +256,7 @@ module.exports = define(function(require) {
         app.console.print('    :group msg <send to single group>');
         app.console.print('message type:');
         app.console.print('    :[image]:\d [audio]:\d [video]:\d otherwise text message');
-        app.console.print('    :in text message, use [e0-104] send emoji');
+        app.console.print('    :in text message, use \":number:\" send emoji, number in [0, 105], send \":\" use \"::\"');
         app.console.prompt();
     };
     return new Command();

@@ -88,6 +88,7 @@ class Manager extends EventEmitter {
                 for (var i = 0, len = rows.length; i < len; i++){
                     this.newestMessage.push(rows.item(i));
                 }
+                console.log('getNewestMessage <success>', this.newestMessage);
                 this.emitNewestMessageChange();
                 this.hasLoadNewestMessage = true;
             });
