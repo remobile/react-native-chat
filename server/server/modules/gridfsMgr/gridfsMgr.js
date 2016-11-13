@@ -1,6 +1,7 @@
 module.exports = (function() {
     var _self;
     var fs = require('fs');
+    var path = require('path');
     var mongoose = require('mongoose');
     var Grid = require('gridfs-stream');
 
@@ -9,16 +10,17 @@ module.exports = (function() {
         _self.gfs = Grid(db, mongoose.mongo);
     }
     Mgr.prototype.saveUserHead = function(filename, path, userid, callback) {
+        var extname = path.extname(filename);
         var writestream = _self.gfs.createWriteStream({
             filename
         }).on('close', function (file) {
             var {_id} = file;
-            app.db.User._updateUserInfo(userid, {head: _id}, function(doc){
+            app.db.User._updateUserInfo(userid, {head: _id, headType: extname}, function(doc){
                 if (doc.head) {
                     _self.gfs.remove({_id: doc.head})
                 }
-                callback({id:_id});
-                app.socketMgr.notifyOnlineUsers(userid, 'USERS_UPDATE_HEAD_NF', {userid, head:_id});
+                callback({head:_id, headType: extname});
+                app.socketMgr.notifyOnlineUsers(userid, 'USERS_UPDATE_HEAD_NF', {userid, head:_id, headType: extname});
             });
         });
         fs.createReadStream(__dirname+'/../../'+path).pipe(writestream);
