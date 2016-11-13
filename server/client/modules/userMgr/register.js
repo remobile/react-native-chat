@@ -10,8 +10,8 @@ module.exports = define(function(require) {
         if (args.length >= 4) {
             _self.username = args[0];
             _self.phone = args[1];
-            _self.password = args[2];
-            _self.email = args[3];
+            _self.email = args[2];
+            _self.password = args[3];
             _self.doRegister();
         } else {
             _self.questionUserName();

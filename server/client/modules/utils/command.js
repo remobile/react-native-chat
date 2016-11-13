@@ -236,7 +236,7 @@ module.exports = define(function(require) {
         app.console.print('you can follows commands:', 'blue');
         app.console.print('    <h|help>: show help');
         app.console.print('    <q|exit>: exit client');
-        app.console.print('    <r|register [username phone password]>: register, username,phone and password is opiton');
+        app.console.print('    <r|register [username phone email password]>: register, username,phone,email and password is opiton');
         app.console.print('    <l|login [username password]>: login, username and password is opiton');
         app.console.print('    <ou|onlineusers>: show users online');
         app.console.print('    <u|users>: show all users online and offline');

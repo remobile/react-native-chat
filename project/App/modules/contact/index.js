@@ -28,8 +28,8 @@ module.exports = React.createClass({
         });
     },
     renderRow(obj) {
-        var {username, online, head, headType, userid} = app.userMgr.users[obj];
-        var url = app.route.ROUTE_USER_HEAD(head, headType);
+        var {username, online, head, userid} = app.userMgr.users[obj];
+        var url = app.route.ROUTE_USER_HEAD(head);
         return (
             <View style={styles.row}>
                 <CacheImage

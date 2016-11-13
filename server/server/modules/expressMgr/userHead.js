@@ -12,7 +12,7 @@ module.exports = (function() {
             });
         });
         server.get('/api/getUserHead', function (req, res) {
-            app.db.gridfs.getUserHead(req.query.id, res);
+            app.db.gridfs.getUserHead(req.query.head, res);
         });
     };
 
