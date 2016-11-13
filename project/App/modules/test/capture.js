@@ -13,33 +13,25 @@ var {
 var SplashScreen = require('@remobile/react-native-splashscreen');
 var Button = require('@remobile/react-native-simple-button');
 var Capture = require('@remobile/react-native-capture');
-
+var fs = require('react-native-fs');
 
 module.exports = React.createClass({
     componentDidMount() {
         SplashScreen.hide();
     },
-    getInitialState() {
-        return {
-            info: ''
-        };
-    },
-    captureSuccess(mediaFiles) {
-        this.setState({info: JSON.stringify(mediaFiles)});
-    },
-    captureError(error) {
-        this.setState({info: JSON.stringify(error)});
-    },
     doCapture() {
-        Capture.captureVideo(this.captureSuccess, this.captureError, {limit:1});
+        fs.downloadFile({fromUrl:'http://localhost:8888/1.png', toFile:'//Users/fang/rn/1.png'}).promise.then(async (res)=>{
+            console.log(res);
+        }).catch(
+            (err)=>{
+                console.log(err);
+            }
+        );
     },
     render() {
         return (
             <View style={styles.container}>
                 <Button onPress={this.doCapture}>采集</Button>
-                <Text>
-                    {this.state.info}
-                </Text>
             </View>
         );
     }

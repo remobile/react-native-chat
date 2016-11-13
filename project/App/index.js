@@ -30,7 +30,6 @@ global.DelayTouchableOpacity = COMPONENTS.DelayTouchableOpacity;
 var ProgressHud = COMPONENTS.ProgressHud;
 var TimerMixin = require('react-timer-mixin');
 var Sqlite = require('@remobile/react-native-sqlite');
-// var CacheImage = require('@remobile/react-native-cache-image');
 var fs = require('react-native-fs');
 var Utils = require('./utils/common/index.js');
 var Route = require('./config/Route.js');
@@ -50,7 +49,6 @@ global.app = {
     isandroid: Platform.OS==="android",
     ...manager
 };
-// CacheImage.init(app.db);
 
 app.configureScene = function(route) {
     route = route||{};

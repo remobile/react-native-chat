@@ -4,7 +4,7 @@ const {SERVER, BASE_SERVER} = CONSTANTS;
 
 module.exports = {
     //用户
-    ROUTE_USER_HEAD:(id)=>id ? SERVER+'getUserHead?id=1'+id : BASE_SERVER+'img/default_user_head.png', //用户头像
+    ROUTE_USER_HEAD:(id)=>SERVER+'getUserHead?id='+id, //用户头像
 
     //网页地址
     ROUTE_USER_PROTOCOL: BASE_SERVER+'helper/protocal.html', //用户协议
