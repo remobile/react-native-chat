@@ -26,7 +26,7 @@ class Manager extends EventEmitter {
     reset() {
         this.users = {};
         this.groupedUsers = {}; //use alpha grouped
-        this.init = false;
+        this._init = false;
     }
     add(obj) {
         var users = this.users;
@@ -67,7 +67,7 @@ class Manager extends EventEmitter {
             }
         }
         this.emitUserListChange();
-        this.init = true;
+        this._init = true;
     }
     addGroupedUser(userid) {
         if (app.loginMgr.userid === userid) {

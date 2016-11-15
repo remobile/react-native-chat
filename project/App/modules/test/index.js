@@ -11,7 +11,6 @@ var {
     Navigator,
 } = ReactNative;
 
-var PersonInfo = require('../person/PersonInfo.js');
 var TestImage = require('./image.js');
 var QRCode = require('./qrcode.js');
 
@@ -24,12 +23,6 @@ var modules = [
 module.exports = React.createClass({
     statics: {
         title: CONSTANTS.APP_NAME,
-        leftButton: { image: app.img.common_left_menu, handler: ()=>{
-            app.navigator.push({
-                component: PersonInfo,
-                fromLeft: true,
-            });
-        }},
     },
     getInitialState: function() {
         var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});

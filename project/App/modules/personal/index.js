@@ -7,7 +7,7 @@ var {
     Text,
     View,
     TouchableOpacity,
-    ScrollView,
+    TouchableHighlight,
 } = ReactNative;
 
 var EditPersonInfo = require('./EditPersonInfo.js');
@@ -17,9 +17,8 @@ var Store = require('../test/store.js');
 var {Button, DImage, WebviewMessageBox} = COMPONENTS;
 
 const CHILD_PAGES = [
-    {strict:true, title:'个人资料', module: EditPersonInfo, img:app.img.personal_info, info:''},
     {seprator:true, title:'设置', module: Settings, img:app.img.personal_settings, info:''},
-    {hidden:!CONSTANTS.LOCAL_TEST, title:'查看存储', module: Store, img:app.img.personal_settings, info:''},
+    {hidden:false, title:'查看存储', module: Store, img:app.img.personal_settings, info:''},
 ];
 
 
@@ -65,41 +64,34 @@ module.exports = React.createClass({
         }, 0);
         app.personal.clear();
     },
-    shouldComponentUpdate(nextProps, nextState) {
-        return app.personal.info!=null;
+    showEditPersonInfo() {
+
     },
     render() {
+        const {userid} = app.loginMgr;
+        const {username} = app.userMgr.users[userid]||{};
         return (
             <View style={styles.container}>
-                <Image
-                    resizeMode='stretch'
-                    style={styles.headImgBg}
-                    source={app.img.home_background}>
-                    <View>
-                        <DImage
-                            resizeMode='cover'
-                            source={app.img.splash_logo}
-                            style={styles.headStyle}
-                            />
+                <TouchableHighlight underlayColor="#CFCFCF" onPress={this.showEditPersonInfo}>
+                    <View style={styles.infoContainer}>
+                        <Image
+                            resizeMode='stretch'
+                            source={app.img.personal_default_head}
+                            style={styles.avatar} />
+                        <View style={styles.nameContainer}>
+                            <Text style={styles.name}>{username}</Text>
+                            <Text style={styles.phone}>{userid}</Text>
+                        </View>
                     </View>
-                    <Text style={styles.info}>
-                        <Text style={[styles.bigInfo, {color: '#EE3B3B'}]}>人人</Text>监督    <Text style={[styles.bigInfo, {color: '#436EEE'}]}>监督</Text>人人
-                    </Text>
-                </Image>
-                <ScrollView >
-                    {
-                        CHILD_PAGES.map((item, i)=>{
-                            if (!app.personal.info.phone && item.strict) {
-                                return null;
-                            }
-                            return (
-                                !item.hidden&&
-                                <MenuItem page={item} key={i}/>
-                            )
-                        })
-                    }
-                </ScrollView>
-                <Button onPress={this.doExit} style={styles.btnExit}>{app.personal.info.phone?'安全退出':'没有身份的人生是不完整的'}</Button>
+                </TouchableHighlight>
+                {
+                    CHILD_PAGES.map((item, i)=>{
+                        return (
+                            !item.hidden&&
+                            <MenuItem page={item} key={i}/>
+                        )
+                    })
+                }
             </View>
         );
     }
@@ -108,13 +100,34 @@ module.exports = React.createClass({
 var styles = StyleSheet.create({
     container: {
         flex:1,
+        paddingTop: 20,
         backgroundColor: '#ececec',
     },
-    headImgBg:{
-        height: 200,
-        width: sr.w,
-        alignItems:'center',
-        justifyContent:'center',
+    infoContainer: {
+        height: 100,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+    avatar: {
+        width: 80,
+        height: 80,
+        marginLeft: 20,
+    },
+    nameContainer: {
+        flex: 1,
+        height: 80,
+        paddingLeft: 20,
+        justifyContent: 'center',
+    },
+    name: {
+        fontSize: 18,
+        marginBottom: 5,
+    },
+    phone: {
+        fontSize: 14,
+        marginTop: 5,
+        color: 'gray',
     },
     ItemBg2: {
         marginTop: 20,
@@ -129,12 +142,6 @@ var styles = StyleSheet.create({
         height: 45,
         flexDirection: 'row',
         backgroundColor: '#FFFFFF',
-    },
-    headStyle: {
-        alignSelf: 'flex-start',
-        width: 100,
-        height: 100,
-        borderRadius: 50,
     },
     icon_go: {
         alignSelf: 'flex-end',
@@ -156,34 +163,10 @@ var styles = StyleSheet.create({
         alignSelf: 'center',
         marginLeft: 10,
     },
-    itemNumText: {
-        marginLeft: 10,
-        fontSize: 13,
-        alignSelf: 'center',
-        color: 'red',
-    },
     itemNoticeText: {
         marginLeft: 65,
         fontSize: 12,
         color: 'gray',
         alignSelf: 'center',
-    },
-    info: {
-        marginTop: 20,
-        fontSize: 20,
-        color: '#8B864E',
-        backgroundColor: 'transparent',
-    },
-    bigInfo: {
-        fontSize: 26,
-    },
-    btnExit: {
-        position: 'absolute',
-        width: sr.w-40,
-        marginLeft: 20,
-        height: 40,
-        borderRadius: 5,
-        backgroundColor:'#CD3700',
-        bottom: 50,
     },
 });

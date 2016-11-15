@@ -36,7 +36,7 @@ module.exports = React.createClass({
     },
     componentDidMount() {
         app.utils.until(
-            ()=>app.userMgr.init/*&&app.groupMgr.init*/,
+            ()=>app.userMgr._init/*&&app.groupMgr._init*/,
             (cb)=>setTimeout(cb, 100),
             ()=>app.messageMgr.getNewestMessage(app.loginMgr.userid)
         );

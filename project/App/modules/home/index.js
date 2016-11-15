@@ -14,6 +14,7 @@ import TabNavigator from 'react-native-tab-navigator';
 var Test = require('../test');
 var Contact = require('../contact');
 var Message = require('../message');
+var Personal = require('../personal');
 var Empty = require('./Empty.js');
 
 var INIT_ROUTE_INDEX = 0;
@@ -21,7 +22,7 @@ var ROUTE_STACK = [
     {index: 0, component: Message},
     {index: 1, component: Contact},
     {index: 2, component: Test},
-    {index: 3, component: Empty},
+    {index: 3, component: Personal},
 ];
 if (CONSTANTS.ISSUE_IOS) {
     _.remove(ROUTE_STACK, (o)=>o.index===3);

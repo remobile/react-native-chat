@@ -20,7 +20,7 @@ class Manager extends EventEmitter {
     reset() {
         this.list = {};
         this.alphaList = {};
-        this.init = false;
+        this._init = false;
     }
     add(obj, noupdate) {
         let {id} = obj,
@@ -77,7 +77,7 @@ class Manager extends EventEmitter {
         for (var item of list) {
             this.add(item);
         }
-        this.init = true;
+        this._init = true;
     }
     getGroupList(name, creators, members) {
         app.showWait();
