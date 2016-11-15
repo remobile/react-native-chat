@@ -68,6 +68,7 @@ var styles = StyleSheet.create({
         padding:10,
         borderRadius: 5,
         backgroundColor:'#FFFFFF',
+        textAlignVertical: 'top',
     },
     buttonContainer: {
         flex: 2,
