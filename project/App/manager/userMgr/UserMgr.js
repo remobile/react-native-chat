@@ -17,6 +17,12 @@ class Manager extends EventEmitter {
     addUserListChangeListener(target) {
         target.addListenerOn(this, "USER_LIST_CHANGE_EVENT", target.onUserListChangeListener);
     };
+    emitUserHeadChange(userid) {
+        this.emit('USER_HEAD_CHANGE_EVENT', userid);
+    }
+    addUserHeadChangeListener(target) {
+        target.addListenerOn(this, "USER_HEAD_CHANGE_EVENT", target.onUserHeadChangeListener);
+    };
     reset() {
         this.users = {};
         this.groupedUsers = {}; //use alpha grouped
@@ -101,8 +107,17 @@ class Manager extends EventEmitter {
         }
         return null;
     }
+    onUserUpdateHead(obj) {
+        const {userid, head} = obj;
+        this.users[userid].head = head;
+        this.emitUserListChange();
+        this.emitUserHeadChange(userid);
+    }
     updateUserInfo(username, phone, sign) {
         app.socketMgr.emit('USERS_UPDATE_USERINFO_RQ', {username, phone, sign});
+    }
+    onUpdateUserInfo(obj) {
+        console.log("onUpdateUserInfo", obj);
     }
     onUpdateUserInfoNotify(obj) {
         var users = this.users;

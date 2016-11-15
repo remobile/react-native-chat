@@ -26,11 +26,18 @@ module.exports = React.createClass({
         };
     },
     componentWillMount() {
+        app.userMgr.addUserHeadChangeListener(this);
         app.messageMgr.addDisplayMessageChangeListener(this);
     },
+    onUserHeadChangeListener(userid) {
+        const {GROUP_TYPE, USER_TYPE, displayMessage} = app.messageMgr;
+        const {type, targetid} = this.props;
+        if (type === GROUP_TYPE || (type === USER_TYPE && userid === targetid)) {
+            this.setState({dataSource: this.ds.cloneWithRows(displayMessage)});
+        }
+    },
     onDisplayMessageChangeListener() {
-        this.setState({loading: false});
-        this.setState({dataSource: this.ds.cloneWithRows(app.messageMgr.displayMessage)});
+        this.setState({loading: false, dataSource: this.ds.cloneWithRows(app.messageMgr.displayMessage)});
     },
     componentDidMount() {
         const {type, targetid} = this.props;

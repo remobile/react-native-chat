@@ -17,6 +17,7 @@ module.exports = (function() {
         }
     };
     SocketMgr.prototype.notifyOnlineUsers = function(userid, msg_type, obj) {
+        console.log("notifyOnlineUsers", userid, msg_type, obj);
         var mgr = app.onlineUserMgr;
         var onlineUsers = mgr.onlineUsers;
         for (var id in onlineUsers) {

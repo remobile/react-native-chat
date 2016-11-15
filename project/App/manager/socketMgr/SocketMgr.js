@@ -7,7 +7,7 @@ var io = require('socket.io-client/socket.io');
 
 class Manager {
     register() {
-        const {loginMgr, userMgr, notifyMgr, groupMgr, messageMgr, personalInfo, callMgr} = app;
+        const {loginMgr, userMgr, notifyMgr, groupMgr, messageMgr, callMgr} = app;
         this.socket = io.connect('ws://127.0.0.1:8888', {
             connect_timeout: 3000,
             transports: ['websocket'],
@@ -67,8 +67,10 @@ class Manager {
             messageMgr.showOfflineMessage(obj);
         })._on('USER_GET_MESSAGE_RS', (obj) => {
             messageMgr.onGetMessage(obj);
+        })._on('USERS_UPDATE_HEAD_NF', function(obj) {
+            userMgr.onUserUpdateHead(obj);
         })._on('USERS_UPDATE_USERINFO_RS', (obj) => {
-            personalInfo.onUpdateUserInfo(obj);
+            userMgr.onUpdateUserInfo(obj);
         })._on('USERS_UPDATE_USERINFO_NF', (obj) => {
             userMgr.onUpdateUserInfoNotify(obj);
         })._on('GROUP_LIST_RS', (obj) => {

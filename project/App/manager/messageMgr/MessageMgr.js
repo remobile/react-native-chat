@@ -146,17 +146,14 @@ class Manager extends EventEmitter {
                 console.log('getUserMessage <error>', error);
             });
         } else {
-            this.lastTimeLabelItem.timeLabel = this.lastTimeLabel;
-            this.serverMessageHasAllGet = true;
-            this.emitDisplayMessageChange();
-            // app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type, targetid, this.lastTimeLabelItem.time, cnt:this.PER_COUNT});
+            app.socketMgr.emit('USER_GET_MESSAGE_RQ', {type, counter:targetid, time:this.lastTimeLabelItem.time, cnt:this.PER_COUNT});
         }
     }
     onGetMessage(obj) {
         var msg = obj.msg;
         var selfid = app.loginMgr.userid;
         msg.forEach((item)=>{
-            var doc = (from == selfid) ?
+            var doc = (item.from == selfid) ?
             {userid:item.to, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime(), send:true} :
             {userid:item.from, msg:item.msg, msgtype:item.msgtype, time:new Date(item.time).getTime()};
             this.updateTimeLabel(doc);
