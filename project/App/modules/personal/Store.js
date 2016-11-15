@@ -93,7 +93,7 @@ module.exports = React.createClass({
 var styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 100,
+        paddingTop: 10,
     },
     buttonContainer: {
         flexDirection: 'row',

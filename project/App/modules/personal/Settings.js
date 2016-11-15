@@ -14,7 +14,7 @@ var {
 var Help = require('./Help.js');
 var About = require('./About.js');
 var Update = require('./Update.js');
-var Feedback = require('./Feedback');
+var Feedback = require('./Feedback.js');
 var ModifyPassword = require('./ModifyPassword.js');
 var CommonSetting = require('./CommonSetting.js');
 
@@ -22,7 +22,7 @@ var {Button, WebviewMessageBox} = COMPONENTS;
 
 const CHILD_PAGES = [
     {title:'基础设置', module: CommonSetting, img:app.img.common_point, info:''},
-    {strict:true, title:'修改密码', module: ModifyPassword, img:app.img.common_point, info:''},
+    {title:'修改密码', module: ModifyPassword, img:app.img.common_point, info:''},
     {seprator:true, title:'在线更新', module: Update, img:app.img.common_point, info:''},
     {title:'意见反馈', module: Feedback, img:app.img.common_point, info:''},
     {seprator:true, title:'软件许可协议', module: Help, img:app.img.common_point, info:''},
@@ -64,19 +64,12 @@ module.exports = React.createClass({
     statics: {
         title: '设置',
     },
-    shouldComponentUpdate(nextProps, nextState) {
-        return app.personal.info != null;
-    },
     render() {
-        var info = app.personal.info;
         return (
             <View style={styles.container}>
                 <ScrollView>
                     {
                         CHILD_PAGES.map((item, i)=>{
-                            if (!app.personal.info.phone && item.strict) {
-                                return null;
-                            }
                             return (
                                 !item.hidden&&
                                 <MenuItem page={item} key={i}/>

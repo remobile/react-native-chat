@@ -15,15 +15,15 @@ module.exports = React.createClass({
     },
     getInitialState() {
         return {
-            onlyWifiUpload: !!app.setting.data.onlyWifiUpload,
+            onlyWifiUpload: !!app.settingMgr.data.onlyWifiUpload,
         };
     },
     onValueChange(value) {
         this.setState({onlyWifiUpload: value});
-        app.setting.setOnlyWifiUpload(value);
+        app.settingMgr.setOnlyWifiUpload(value);
     },
     selectThemeColor(color) {
-        app.setting.setThemeColor(color);
+        app.settingMgr.setThemeColor(color);
     },
     render() {
         return (

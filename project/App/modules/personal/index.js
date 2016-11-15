@@ -12,13 +12,13 @@ var {
 
 var EditPersonInfo = require('./EditPersonInfo.js');
 var Settings = require('./Settings');
-var Store = require('../test/store.js');
+var Store = require('./Store.js');
 
 var {Button, DImage, WebviewMessageBox} = COMPONENTS;
 
 const CHILD_PAGES = [
     {seprator:true, title:'设置', module: Settings, img:app.img.personal_settings, info:''},
-    {hidden:false, title:'查看存储', module: Store, img:app.img.personal_settings, info:''},
+    {hidden:false, seprator:true, title:'查看存储', module: Store, img:app.img.personal_settings, info:''},
 ];
 
 
