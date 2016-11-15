@@ -14,14 +14,14 @@ module.exports = (function() {
             filename
         }).on('close', function (file) {
             var {_id} = file;
-            var extname = _path.extname(filename);
-            app.db.User._updateUserInfo(userid, {head: _id+extname}, function(doc){
+            var head = _id+_path.extname(filename);
+            app.db.User._updateUserInfo(userid, {head}, function(doc){
                 if (doc.head) {
                     var id = doc.head.replace(/(.*)\..*/, '$1');
                     _self.gfs.remove({_id: id})
                 }
-                callback({head:_id});
-                app.socketMgr.notifyOnlineUsers(userid, 'USERS_UPDATE_HEAD_NF', {userid, head:_id});
+                callback({head});
+                app.socketMgr.notifyOnlineUsers(userid, 'USERS_UPDATE_HEAD_NF', {userid, head});
             });
         });
         fs.createReadStream(__dirname+'/../../'+path).pipe(writestream);
