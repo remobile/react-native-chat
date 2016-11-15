@@ -248,10 +248,10 @@ module.exports = React.createClass({
                     }
                     return true;
                 }
-                if (!app.willExitAndroid) {
+                if (!this.willExitAndroid) {
                     Toast("再按一次返回键退出程序");
-                    app.willExitAndroid = true;
-                    this.setTimeout(()=>{app.willExitAndroid = false}, 3000);
+                    this.willExitAndroid = true;
+                    this.setTimeout(()=>{this.willExitAndroid = false}, 3000);
                     return true;
                 }
                 return false;

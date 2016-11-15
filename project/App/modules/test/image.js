@@ -16,7 +16,7 @@ var CacheImageIdMgr = {
     CACHE_ID_USER_HEAD2: 2,
 };
 
-var SERVER = 'http://localhost:8888/';
+var SERVER = 'http://localhost:3000/images/';
 
 module.exports = React.createClass({
     componentWillMount() {
@@ -25,6 +25,13 @@ module.exports = React.createClass({
     render: function() {
         return (
             <View style={styles.container}>
+                <CacheImage
+                    resizeMode='stretch'
+                    defaultImage={app.img.personal_default_head}
+                    url={SERVER+"1.png"}
+                    style={styles.image}
+                    cacheId={CacheImageIdMgr.CACHE_ID_USER_HEAD}
+                    />
                 <CacheImage
                     resizeMode='stretch'
                     defaultImage={app.img.personal_default_head}
